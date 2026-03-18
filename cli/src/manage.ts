@@ -25,7 +25,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync, spawn, spawnSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { confirm } from "@inquirer/prompts";
@@ -529,6 +529,53 @@ function hasDocker(): boolean {
   }
 }
 
+/**
+ * Start database via docker compose. Treats "already running" as success.
+ */
+function startDatabase(): void {
+  const spinner = ora("  Starting database...").start();
+  try {
+    execSync("docker compose up -d", { cwd: process.cwd(), stdio: "pipe" });
+    spinner.succeed("  Database running");
+  } catch {
+    // Check if containers are already up
+    try {
+      const ps = execSync("docker compose ps --status running -q", {
+        cwd: process.cwd(),
+        stdio: "pipe",
+      }).toString().trim();
+      if (ps.length > 0) {
+        spinner.succeed("  Database already running");
+      } else {
+        spinner.fail("  Failed to start database");
+      }
+    } catch {
+      spinner.fail("  Failed to start database");
+    }
+  }
+}
+
+/**
+ * Spawn a child process and forward SIGINT/SIGTERM so Ctrl+C works cleanly.
+ */
+function spawnWithSignalForwarding(cmd: string, args: string[]): void {
+  const child = spawn(cmd, args, {
+    cwd: process.cwd(),
+    stdio: "inherit",
+  });
+
+  const forwardSignal = (signal: NodeJS.Signals) => {
+    child.kill(signal);
+  };
+
+  process.on("SIGINT", () => forwardSignal("SIGINT"));
+  process.on("SIGTERM", () => forwardSignal("SIGTERM"));
+
+  child.on("close", (code) => {
+    process.exit(code ?? 0);
+  });
+}
+
 async function commandDev(): Promise<void> {
   requireKeelProject();
 
@@ -539,7 +586,7 @@ async function commandDev(): Promise<void> {
   // Step 1: Start Docker database if docker-compose exists
   if (hasDockerCompose()) {
     if (hasDocker()) {
-      runSync("docker compose up -d", "Starting database");
+      startDatabase();
     } else {
       console.log(chalk.yellow("  ⚠ docker-compose.yml found but Docker is not running"));
       console.log(chalk.gray("    Make sure your database is accessible via DATABASE_URL\n"));
@@ -549,19 +596,11 @@ async function commandDev(): Promise<void> {
   // Step 2: Run migrations
   runSync("npm run db:migrate", "Running migrations");
 
-  // Step 3: Start dev servers (hand off to npm run dev — inherits stdio)
+  // Step 3: Start dev servers
   console.log();
   console.log(chalk.bold("  Starting dev servers...\n"));
 
-  const child = spawn("npm", ["run", "dev"], {
-    cwd: process.cwd(),
-    stdio: "inherit",
-    shell: true,
-  });
-
-  child.on("close", (code) => {
-    process.exit(code ?? 0);
-  });
+  spawnWithSignalForwarding("npm", ["run", "dev"]);
 }
 
 async function commandStart(): Promise<void> {
@@ -574,7 +613,7 @@ async function commandStart(): Promise<void> {
   // Step 1: Start Docker database if docker-compose exists
   if (hasDockerCompose()) {
     if (hasDocker()) {
-      runSync("docker compose up -d", "Starting database");
+      startDatabase();
     } else {
       console.log(chalk.yellow("  ⚠ docker-compose.yml found but Docker is not running"));
       console.log(chalk.gray("    Make sure your database is accessible via DATABASE_URL\n"));
@@ -594,15 +633,7 @@ async function commandStart(): Promise<void> {
   console.log();
   console.log(chalk.bold("  Starting production server...\n"));
 
-  const child = spawn("node", ["packages/backend/dist/index.js"], {
-    cwd: process.cwd(),
-    stdio: "inherit",
-    shell: true,
-  });
-
-  child.on("close", (code) => {
-    process.exit(code ?? 0);
-  });
+  spawnWithSignalForwarding("node", ["packages/backend/dist/index.js"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -926,15 +957,7 @@ function commandDbStudio(): void {
   console.log(chalk.bold.blue("  ⛵ Opening Drizzle Studio..."));
   console.log();
 
-  const child = spawn("npm", ["run", "db:studio"], {
-    cwd: process.cwd(),
-    stdio: "inherit",
-    shell: true,
-  });
-
-  child.on("close", (code) => {
-    process.exit(code ?? 0);
-  });
+  spawnWithSignalForwarding("npm", ["run", "db:studio"]);
 }
 
 function commandDbSeed(): void {
@@ -954,20 +977,7 @@ function commandDbSeed(): void {
   console.log(chalk.bold.blue("  ⛵ Running database seed..."));
   console.log();
 
-  const child = spawn("npx", ["tsx", "packages/backend/src/db/seed.ts"], {
-    cwd: process.cwd(),
-    stdio: "inherit",
-    shell: true,
-  });
-
-  child.on("close", (code) => {
-    if (code === 0) {
-      console.log(chalk.green("\n  Seed completed successfully.\n"));
-    } else {
-      console.error(chalk.red("\n  Seed failed.\n"));
-    }
-    process.exit(code ?? 0);
-  });
+  spawnWithSignalForwarding("npx", ["tsx", "packages/backend/src/db/seed.ts"]);
 }
 
 // ---------------------------------------------------------------------------

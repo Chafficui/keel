@@ -51,7 +51,7 @@ export async function main(args: string[] = []): Promise<void> {
   console.log();
   console.log(chalk.bold("  Quick start:"));
   console.log(chalk.cyan(`    cd ${config.projectName}`));
-  console.log(chalk.cyan("    npx @chafficui/keel dev"));
+  console.log(chalk.cyan("    keel dev"));
   console.log();
 
   if (!config.resendApiKey) {

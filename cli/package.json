@@ -1,6 +1,6 @@
 {
   "name": "@chafficui/keel",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "description": "CLI tool for keel (a codai project): create projects and manage sails",
   "repository": {
@@ -14,7 +14,10 @@
     "create-keel": "./dist/create.js",
     "keel": "./dist/manage.js"
   },
-  "files": ["dist", "sails"],
+  "files": [
+    "dist",
+    "sails"
+  ],
   "scripts": {
     "build": "tsc --build",
     "dev": "tsx src/create.ts"
