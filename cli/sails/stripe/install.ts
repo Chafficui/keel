@@ -293,7 +293,7 @@ async function main(): Promise<void> {
   insertAtMarker(routerPath, "// [SAIL_IMPORTS]", `import { PricingPage } from "./pages/Pricing";\nimport { CheckoutPage } from "./pages/Checkout";`);
   insertAtMarker(
     routerPath,
-    "// [SAIL_ROUTES]",
+    "{/* [SAIL_ROUTES] */}",
     `      {\n        path: "/pricing",\n        element: <PricingPage />,\n      },\n      {\n        path: "/checkout/success",\n        element: <CheckoutPage status="success" />,\n      },\n      {\n        path: "/checkout/cancel",\n        element: <CheckoutPage status="cancel" />,\n      },`
   );
 
