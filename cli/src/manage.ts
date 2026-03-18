@@ -556,20 +556,29 @@ function startDatabase(): void {
 }
 
 /**
- * Spawn a child process and forward SIGINT/SIGTERM so Ctrl+C works cleanly.
+ * Spawn a child process in its own process group and kill the entire tree
+ * on SIGINT/SIGTERM so Ctrl+C works cleanly even with nested processes
+ * (e.g. npm → concurrently → vite + tsx).
  */
 function spawnWithSignalForwarding(cmd: string, args: string[]): void {
   const child = spawn(cmd, args, {
     cwd: process.cwd(),
     stdio: "inherit",
+    detached: true,
   });
 
-  const forwardSignal = (signal: NodeJS.Signals) => {
-    child.kill(signal);
+  const killTree = () => {
+    try {
+      // Kill the entire process group (negative PID)
+      process.kill(-child.pid!, "SIGTERM");
+    } catch {
+      // Process may already be dead
+    }
+    process.exit(0);
   };
 
-  process.on("SIGINT", () => forwardSignal("SIGINT"));
-  process.on("SIGTERM", () => forwardSignal("SIGTERM"));
+  process.on("SIGINT", killTree);
+  process.on("SIGTERM", killTree);
 
   child.on("close", (code) => {
     process.exit(code ?? 0);
