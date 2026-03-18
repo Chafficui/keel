@@ -32,7 +32,9 @@ const authConfig: BetterAuthOptions = {
     sendOnSignUp: env.NODE_ENV === "production",
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      await sendVerificationEmail(user.email, url);
+      // Replace backend URL with frontend URL in verification link
+      const frontendUrl = url.replace(env.BACKEND_URL, env.FRONTEND_URL);
+      await sendVerificationEmail(user.email, frontendUrl);
     },
   },
   session: {

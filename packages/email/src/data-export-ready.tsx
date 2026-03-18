@@ -32,8 +32,7 @@ export function DataExportReadyEmail({
       <Body style={body}>
         <Container style={container}>
           <Section style={logoSection}>
-            {/* Replace with your logo */}
-            <Text style={logoText}>Your App</Text>
+            <Text style={logoText}>Keel</Text>
           </Section>
 
           <Hr style={hr} />
@@ -80,7 +79,7 @@ export function DataExportReadyEmail({
 
           <Section style={footerSection}>
             <Text style={footerText}>
-              &copy; {new Date().getFullYear()} Your App. All rights reserved.
+              &copy; {new Date().getFullYear()} Keel &mdash; a codai project
             </Text>
           </Section>
         </Container>
@@ -98,17 +97,16 @@ DataExportReadyEmail.PreviewProps = {
 export default DataExportReadyEmail;
 
 const body: React.CSSProperties = {
-  backgroundColor: "#f9fafb",
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  backgroundColor: "#0B1220",
+  fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   margin: 0,
   padding: 0,
 };
 
 const container: React.CSSProperties = {
-  backgroundColor: "#ffffff",
-  borderRadius: "8px",
-  border: "1px solid #e5e7eb",
+  backgroundColor: "#111827",
+  borderRadius: "12px",
+  border: "1px solid #1F2937",
   margin: "40px auto",
   maxWidth: "560px",
   padding: "0",
@@ -120,15 +118,16 @@ const logoSection: React.CSSProperties = {
 };
 
 const logoText: React.CSSProperties = {
-  color: "#1a1a1a",
-  fontSize: "20px",
+  color: "#ffffff",
+  fontSize: "24px",
   fontWeight: 700,
   margin: "0",
+  letterSpacing: "-0.025em",
 };
 
 const hr: React.CSSProperties = {
-  borderColor: "#e5e7eb",
-  borderTop: "1px solid #e5e7eb",
+  borderColor: "#1F2937",
+  borderTop: "1px solid #1F2937",
   margin: "24px 40px",
 };
 
@@ -137,7 +136,7 @@ const contentSection: React.CSSProperties = {
 };
 
 const heading: React.CSSProperties = {
-  color: "#1a1a1a",
+  color: "#ffffff",
   fontSize: "24px",
   fontWeight: 700,
   lineHeight: "32px",
@@ -146,14 +145,14 @@ const heading: React.CSSProperties = {
 };
 
 const paragraph: React.CSSProperties = {
-  color: "#1a1a1a",
+  color: "#9CA3AF",
   fontSize: "16px",
   lineHeight: "26px",
-  margin: "0 0 16px 0",
+  margin: "0 0 24px 0",
 };
 
 const listItem: React.CSSProperties = {
-  color: "#1a1a1a",
+  color: "#9CA3AF",
   fontSize: "16px",
   lineHeight: "26px",
   margin: "0 0 4px 16px",
@@ -161,12 +160,12 @@ const listItem: React.CSSProperties = {
 
 const buttonSection: React.CSSProperties = {
   textAlign: "center" as const,
-  margin: "24px 0",
+  margin: "0 0 24px 0",
 };
 
 const button: React.CSSProperties = {
-  backgroundColor: "#2563eb",
-  borderRadius: "6px",
+  backgroundColor: "#2F80FF",
+  borderRadius: "8px",
   color: "#ffffff",
   display: "inline-block",
   fontSize: "16px",
@@ -178,22 +177,22 @@ const button: React.CSSProperties = {
 };
 
 const warningSection: React.CSSProperties = {
-  backgroundColor: "#fef3c7",
+  backgroundColor: "#78350F",
   borderRadius: "6px",
-  border: "1px solid #fcd34d",
+  border: "1px solid #92400E",
   padding: "12px 16px",
   margin: "0 0 24px 0",
 };
 
 const warningText: React.CSSProperties = {
-  color: "#92400e",
+  color: "#F59E0B",
   fontSize: "14px",
   lineHeight: "22px",
   margin: "0",
 };
 
 const secondaryText: React.CSSProperties = {
-  color: "#6b7280",
+  color: "#6B7280",
   fontSize: "14px",
   lineHeight: "22px",
   margin: "0 0 24px 0",
@@ -204,7 +203,7 @@ const footerSection: React.CSSProperties = {
 };
 
 const footerText: React.CSSProperties = {
-  color: "#6b7280",
+  color: "#4B5563",
   fontSize: "12px",
   lineHeight: "20px",
   margin: "0",
