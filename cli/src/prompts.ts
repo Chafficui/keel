@@ -2,8 +2,7 @@
  * Interactive prompts for project configuration.
  *
  * Streamlined wizard: project name, database, email, sails.
- * Most values are auto-derived or use sensible defaults so the
- * common case requires only a few key-presses.
+ * Supports --yes flag for fully non-interactive usage.
  */
 
 import { input, select, checkbox } from "@inquirer/prompts";
@@ -22,6 +21,16 @@ export interface ProjectConfig {
   emailFrom: string;
   betterAuthSecret: string;
   sails: string[];
+}
+
+/** CLI flags parsed from args like --yes, --db=docker, --sails=stripe,google-oauth */
+export interface CreateFlags {
+  yes: boolean;
+  db?: "docker" | "url" | "skip";
+  dbUrl?: string;
+  resendKey?: string;
+  emailFrom?: string;
+  sails?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -58,7 +67,6 @@ function loadSailChoices(): { name: string; value: string }[] {
         value: s.name,
       }));
   } catch {
-    // Fallback if registry can't be read
     return [
       { name: "Google OAuth", value: "google-oauth" },
       { name: "Stripe Payments", value: "stripe" },
@@ -66,23 +74,51 @@ function loadSailChoices(): { name: string; value: string }[] {
   }
 }
 
+/** Parse CLI flags from args array. */
+export function parseFlags(args: string[]): { projectName?: string; flags: CreateFlags } {
+  const flags: CreateFlags = { yes: false };
+  let projectName: string | undefined;
+
+  for (const arg of args) {
+    if (arg === "--yes" || arg === "-y") {
+      flags.yes = true;
+    } else if (arg.startsWith("--db=")) {
+      flags.db = arg.slice(5) as "docker" | "url" | "skip";
+    } else if (arg.startsWith("--db-url=")) {
+      flags.dbUrl = arg.slice(9);
+      flags.db = "url";
+    } else if (arg.startsWith("--resend-key=")) {
+      flags.resendKey = arg.slice(13);
+    } else if (arg.startsWith("--email-from=")) {
+      flags.emailFrom = arg.slice(13);
+    } else if (arg.startsWith("--sails=")) {
+      flags.sails = arg.slice(8).split(",").filter(Boolean);
+    } else if (!arg.startsWith("-")) {
+      projectName = arg;
+    }
+  }
+
+  return { projectName, flags };
+}
+
 // ---------------------------------------------------------------------------
 // Main prompt flow
 // ---------------------------------------------------------------------------
 
 /**
- * Run all interactive prompts and return the project configuration.
- *
- * @param projectNameArg Optional project name from CLI positional arg.
+ * Run prompts (interactive or non-interactive based on flags).
  */
 export async function runPrompts(
-  projectNameArg?: string
+  projectNameArg?: string,
+  flags: CreateFlags = { yes: false }
 ): Promise<ProjectConfig> {
   // -- 1. Project name -------------------------------------------------------
   let projectName: string;
 
   if (projectNameArg && projectNameArg.length > 0) {
     projectName = sanitize(projectNameArg);
+  } else if (flags.yes) {
+    projectName = "my-app";
   } else {
     const rawName = await input({
       message: "Project name:",
@@ -97,64 +133,86 @@ export async function runPrompts(
     projectName = sanitize(rawName);
   }
 
-  // Auto-derive display name and description
   const displayName = prettify(projectName);
   const description = `${displayName} — built with keel`;
 
   // -- 2. Database -----------------------------------------------------------
-  const databaseSetup = await select<"docker" | "url" | "skip">({
-    message: "Database:",
-    choices: [
-      { name: "Docker (recommended)", value: "docker" },
-      { name: "Custom PostgreSQL URL", value: "url" },
-      { name: "Skip (configure later)", value: "skip" },
-    ],
-    default: "docker",
-  });
-
+  let databaseSetup: "docker" | "url" | "skip";
   let databaseUrl = "";
-  if (databaseSetup === "docker") {
-    databaseUrl = "postgresql://postgres:postgres@localhost:5432/keel";
-  } else if (databaseSetup === "url") {
-    databaseUrl = await input({
-      message: "PostgreSQL URL:",
-      validate: (value) => {
-        if (!value || value.trim().length === 0) return "Database URL is required.";
-        if (!value.startsWith("postgresql://") && !value.startsWith("postgres://"))
-          return "URL should start with postgresql:// or postgres://";
-        return true;
-      },
+
+  if (flags.db) {
+    databaseSetup = flags.db;
+  } else if (flags.yes) {
+    databaseSetup = "docker";
+  } else {
+    databaseSetup = await select<"docker" | "url" | "skip">({
+      message: "Database:",
+      choices: [
+        { name: "Docker (recommended)", value: "docker" },
+        { name: "Custom PostgreSQL URL", value: "url" },
+        { name: "Skip (configure later)", value: "skip" },
+      ],
+      default: "docker",
     });
   }
 
-  // -- 3. Email (optional) ---------------------------------------------------
-  const resendApiKey = await input({
-    message: "Resend API key (optional, press Enter to skip):",
-    default: "",
-  });
+  if (databaseSetup === "docker") {
+    databaseUrl = `postgresql://postgres:postgres@localhost:5432/${projectName.replace(/-/g, "_")}`;
+  } else if (databaseSetup === "url") {
+    if (flags.dbUrl) {
+      databaseUrl = flags.dbUrl;
+    } else if (!flags.yes) {
+      databaseUrl = await input({
+        message: "PostgreSQL URL:",
+        validate: (value) => {
+          if (!value || value.trim().length === 0) return "Database URL is required.";
+          if (!value.startsWith("postgresql://") && !value.startsWith("postgres://"))
+            return "URL should start with postgresql:// or postgres://";
+          return true;
+        },
+      });
+    }
+  }
 
-  let emailFrom = "";
-  if (resendApiKey) {
-    emailFrom = await input({
-      message: "Email FROM address:",
-      default: "noreply@example.com",
-      validate: (value) => {
-        if (!value || !value.includes("@")) return "Enter a valid email address.";
-        return true;
-      },
+  // -- 3. Email (optional) ---------------------------------------------------
+  let resendApiKey = flags.resendKey ?? "";
+  let emailFrom = flags.emailFrom ?? "";
+
+  if (!flags.yes && !flags.resendKey) {
+    resendApiKey = await input({
+      message: "Resend API key (optional, press Enter to skip):",
+      default: "",
     });
+
+    if (resendApiKey) {
+      emailFrom = await input({
+        message: "Email FROM address:",
+        default: "noreply@example.com",
+        validate: (value) => {
+          if (!value || !value.includes("@")) return "Enter a valid email address.";
+          return true;
+        },
+      });
+    }
   }
 
   // -- 4. Auth secret (auto-generated) ---------------------------------------
   const betterAuthSecret = randomBytes(32).toString("hex");
 
   // -- 5. Sail selection -----------------------------------------------------
-  const sailChoices = loadSailChoices();
+  let sails: string[];
 
-  const sails = await checkbox({
-    message: "Sails to install:",
-    choices: sailChoices,
-  });
+  if (flags.sails !== undefined) {
+    sails = flags.sails;
+  } else if (flags.yes) {
+    sails = [];
+  } else {
+    const sailChoices = loadSailChoices();
+    sails = await checkbox({
+      message: "Sails to install:",
+      choices: sailChoices,
+    });
+  }
 
   // -- Summary ---------------------------------------------------------------
   console.log();

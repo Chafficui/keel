@@ -1,29 +1,38 @@
 /**
  * Create project logic — shared between create-keel binary and `keel create` command.
+ *
+ * Supports non-interactive mode:
+ *   keel create my-app --yes                    # all defaults
+ *   keel create my-app --yes --db=docker        # specify database
+ *   keel create my-app --yes --sails=stripe     # with sails
+ *   keel create my-app --yes --resend-key=re_xx --email-from=noreply@x.com
  */
 
 import chalk from "chalk";
-import { runPrompts, type ProjectConfig } from "./prompts.js";
+import { runPrompts, parseFlags } from "./prompts.js";
 import { scaffold } from "./scaffold.js";
 import { installSails } from "./sail-installer.js";
 
 export async function main(args: string[] = []): Promise<void> {
-  console.log();
-  console.log(chalk.blue("  ██╗  ██╗███████╗███████╗██╗     "));
-  console.log(chalk.blue("  ██║ ██╔╝██╔════╝██╔════╝██║     "));
-  console.log(chalk.blue("  █████╔╝ █████╗  █████╗  ██║     "));
-  console.log(chalk.blue("  ██╔═██╗ ██╔══╝  ██╔══╝  ██║     "));
-  console.log(chalk.blue("  ██║  ██╗███████╗███████╗███████╗"));
-  console.log(chalk.blue("  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝"));
-  console.log();
-  console.log(chalk.gray("  a codai project"));
-  console.log();
+  const { projectName, flags } = parseFlags(args);
 
-  const projectNameArg = args[0];
+  // Only show banner in interactive mode
+  if (!flags.yes) {
+    console.log();
+    console.log(chalk.blue("  ██╗  ██╗███████╗███████╗██╗     "));
+    console.log(chalk.blue("  ██║ ██╔╝██╔════╝██╔════╝██║     "));
+    console.log(chalk.blue("  █████╔╝ █████╗  █████╗  ██║     "));
+    console.log(chalk.blue("  ██╔═██╗ ██╔══╝  ██╔══╝  ██║     "));
+    console.log(chalk.blue("  ██║  ██╗███████╗███████╗███████╗"));
+    console.log(chalk.blue("  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝"));
+    console.log();
+    console.log(chalk.gray("  a codai project"));
+    console.log();
+  }
 
-  let config: ProjectConfig;
+  let config;
   try {
-    config = await runPrompts(projectNameArg);
+    config = await runPrompts(projectName, flags);
   } catch {
     console.log(chalk.yellow("\n  Cancelled.\n"));
     process.exit(0);
