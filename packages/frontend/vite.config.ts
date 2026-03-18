@@ -19,8 +19,8 @@ export default defineConfig({
         configure: (proxy) => {
           // Suppress proxy errors during startup (backend not ready yet)
           proxy.on("error", (_err, _req, res) => {
-            if ("writeHead" in res && typeof res.writeHead === "function") {
-              res.writeHead(503, { "Content-Type": "application/json" });
+            if (res && "writeHead" in res) {
+              res.writeHead(502, { "Content-Type": "application/json" });
               res.end(JSON.stringify({ error: "Backend not ready" }));
             }
           });

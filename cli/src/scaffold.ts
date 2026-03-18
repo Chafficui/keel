@@ -130,6 +130,68 @@ export async function scaffold(config: ProjectConfig): Promise<boolean> {
     console.error(chalk.red(`  ${error}`));
   }
 
+  // -- Write project README --------------------------------------------------
+  try {
+    const readmeContent = `# ${config.displayName}
+
+${config.description}
+
+Built with [keel](https://github.com/Chafficui/keel) — a codai project.
+
+## Quick Start
+
+\`\`\`bash
+# Start everything (database + migrations + dev servers)
+keel dev
+\`\`\`
+
+Or manually:
+
+\`\`\`bash
+docker compose up -d          # Start PostgreSQL
+npm run db:migrate             # Run database migrations
+npm run dev                    # Start frontend + backend
+\`\`\`
+
+## Project Structure
+
+\`\`\`
+packages/
+  shared/     — Shared types + validators
+  email/      — Email templates (React Email)
+  frontend/   — Vite + React + TypeScript SPA
+  backend/    — Express + TypeScript API server
+sails/        — Installed sail extensions
+\`\`\`
+
+## Useful Commands
+
+| Command | Description |
+|---------|-------------|
+| \`keel dev\` | Start database, run migrations, launch dev servers |
+| \`keel doctor\` | Health check (Node, Docker, DB, .env) |
+| \`keel env\` | Show environment variable status |
+| \`keel generate route <name>\` | Scaffold an API route |
+| \`keel generate page <name>\` | Scaffold a React page |
+| \`keel generate email <name>\` | Scaffold an email template |
+| \`keel sail add <name>\` | Install a sail extension |
+| \`keel list\` | Show available sails |
+| \`keel db:studio\` | Open Drizzle Studio |
+| \`keel db:reset\` | Reset database (destructive!) |
+
+## Environment
+
+Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to check what's missing.
+
+## Learn More
+
+- [keel documentation](https://github.com/Chafficui/keel)
+`;
+    writeFileSync(join(targetDir, "README.md"), readmeContent, "utf-8");
+  } catch (error) {
+    console.error(chalk.yellow(`  Could not write README.md: ${error}`));
+  }
+
   // -- Customize branding ----------------------------------------------------
   const brandSpinner = ora("Customizing project...").start();
 

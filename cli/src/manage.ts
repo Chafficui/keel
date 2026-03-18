@@ -25,7 +25,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { confirm } from "@inquirer/prompts";
@@ -559,19 +559,28 @@ function startDatabase(): void {
 
 /**
  * Replace the current process with the given command.
- * Uses execSync-like behavior but hands over stdio completely.
- * This way Ctrl+C propagates naturally to all children.
+ * Uses spawn with inherited stdio so Ctrl+C / SIGINT propagates correctly.
  */
 function replaceProcess(cmd: string, args: string[]): void {
-  const fullCmd = [cmd, ...args].join(" ");
-  try {
-    execSync(fullCmd, { cwd: process.cwd(), stdio: "inherit" });
-    process.exit(0);
-  } catch (error: unknown) {
-    // execSync throws on non-zero exit or signal — that's fine for Ctrl+C
-    const exitCode = (error as { status?: number }).status ?? 1;
-    process.exit(exitCode);
-  }
+  const child = spawn(cmd, args, {
+    cwd: process.cwd(),
+    stdio: "inherit",
+  });
+
+  // Ctrl+C: kill child and exit
+  process.on("SIGINT", () => {
+    child.kill("SIGINT");
+    // Give child a moment to clean up, then force exit
+    setTimeout(() => process.exit(0), 500);
+  });
+  process.on("SIGTERM", () => {
+    child.kill("SIGTERM");
+    setTimeout(() => process.exit(0), 500);
+  });
+
+  child.on("close", (code) => {
+    process.exit(code ?? 0);
+  });
 }
 
 async function commandDev(): Promise<void> {
