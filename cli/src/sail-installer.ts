@@ -621,6 +621,420 @@ function installRateLimiting(sailDir: string, projectDir: string): void {
   );
 }
 
+function installGdpr(sailDir: string, projectDir: string): void {
+  const backendDir = join(projectDir, "packages/backend");
+  const frontendDir = join(projectDir, "packages/frontend");
+
+  // Copy backend files
+  const backendMappings = [
+    { src: "backend/services/gdpr.ts", dest: "src/services/gdpr.ts" },
+    { src: "backend/routes/gdpr.ts", dest: "src/routes/gdpr.ts" },
+  ];
+  for (const m of backendMappings) {
+    const destPath = join(backendDir, m.dest);
+    mkdirSync(dirname(destPath), { recursive: true });
+    copyFileSync(join(sailDir, "files", m.src), destPath);
+  }
+
+  // Copy frontend files
+  const frontendMappings = [
+    { src: "frontend/components/gdpr/DataExportButton.tsx", dest: "src/components/gdpr/DataExportButton.tsx" },
+    { src: "frontend/components/gdpr/AccountDeletionRequest.tsx", dest: "src/components/gdpr/AccountDeletionRequest.tsx" },
+    { src: "frontend/components/auth/ConsentCheckboxes.tsx", dest: "src/components/auth/ConsentCheckboxes.tsx" },
+    { src: "frontend/pages/PrivacyPolicy.tsx", dest: "src/pages/PrivacyPolicy.tsx" },
+  ];
+  for (const m of frontendMappings) {
+    const destPath = join(frontendDir, m.dest);
+    mkdirSync(dirname(destPath), { recursive: true });
+    copyFileSync(join(sailDir, "files", m.src), destPath);
+  }
+
+  // Add GDPR schema tables to schema.ts (inline, since there is no separate schema file)
+  const schemaPath = join(backendDir, "src/db/schema.ts");
+  if (existsSync(schemaPath)) {
+    let schemaContent = readFileSync(schemaPath, "utf-8");
+
+    // Ensure varchar import is present
+    if (!schemaContent.includes("varchar")) {
+      schemaContent = schemaContent.replace(
+        /import\s*\{([^}]*)\}\s*from\s*"drizzle-orm\/pg-core"/,
+        (match, imports) => {
+          const trimmed = imports.trim().replace(/,\s*$/, "");
+          return `import { ${trimmed}, varchar } from "drizzle-orm/pg-core"`;
+        }
+      );
+    }
+
+    // Insert GDPR table definitions at the SAIL_SCHEMA marker
+    if (schemaContent.includes("// [SAIL_SCHEMA]") && !schemaContent.includes("consentRecords")) {
+      const gdprSchema = `
+export const consentRecords = pgTable("consent_records", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  consentType: varchar("consent_type", { length: 50 }).notNull(),
+  granted: boolean("granted").notNull(),
+  version: varchar("version", { length: 20 }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  grantedAt: timestamp("granted_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
+});
+
+export const deletionRequests = pgTable("deletion_requests", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: varchar("status", { length: 20 }).default("pending").notNull(),
+  reason: text("reason"),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  scheduledDeletionAt: timestamp("scheduled_deletion_at").notNull(),
+  cancelledAt: timestamp("cancelled_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+export const consentRecordsRelations = relations(consentRecords, ({ one }) => ({
+  user: one(users, { fields: [consentRecords.userId], references: [users.id] }),
+}));
+
+export const deletionRequestsRelations = relations(deletionRequests, ({ one }) => ({
+  user: one(users, { fields: [deletionRequests.userId], references: [users.id] }),
+}));
+`;
+      schemaContent = schemaContent.replace(
+        "// [SAIL_SCHEMA]",
+        `// [SAIL_SCHEMA]\n${gdprSchema}`
+      );
+    }
+
+    // Add GDPR relations to usersRelations
+    if (schemaContent.includes("usersRelations") && !schemaContent.includes("consentRecords: many(consentRecords)")) {
+      schemaContent = schemaContent.replace(
+        /export const usersRelations = relations\(users, \(\{ many \}\) => \(\{/,
+        `export const usersRelations = relations(users, ({ many }) => ({\n  consentRecords: many(consentRecords),\n  deletionRequests: many(deletionRequests),`
+      );
+    }
+
+    writeFileSync(schemaPath, schemaContent, "utf-8");
+  }
+
+  // Modify backend index.ts
+  insertAtMarker(
+    join(backendDir, "src/index.ts"),
+    "// [SAIL_IMPORTS]",
+    'import gdprRoutes from "./routes/gdpr.js";'
+  );
+  insertAtMarker(
+    join(backendDir, "src/index.ts"),
+    "// [SAIL_ROUTES]",
+    'app.use("/api/gdpr", gdprRoutes);'
+  );
+
+  // Add env var validation
+  insertAtMarker(
+    join(backendDir, "src/env.ts"),
+    "// [SAIL_ENV_VARS]",
+    '  DELETION_CRON_SECRET: z.string().default("dev-cron-secret"),'
+  );
+
+  // Add privacy policy route to frontend router
+  insertAtMarker(
+    join(frontendDir, "src/router.tsx"),
+    "// [SAIL_IMPORTS]",
+    'import PrivacyPolicy from "./pages/PrivacyPolicy";'
+  );
+  insertAtMarker(
+    join(frontendDir, "src/router.tsx"),
+    "{/* [SAIL_ROUTES] */}",
+    '          <Route path="/privacy-policy" element={<PrivacyPolicy />} />'
+  );
+
+  // Modify SignupForm to include ConsentCheckboxes
+  const signupPath = join(frontendDir, "src/components/auth/SignupForm.tsx");
+  if (existsSync(signupPath)) {
+    let signupContent = readFileSync(signupPath, "utf-8");
+
+    if (!signupContent.includes("ConsentCheckboxes")) {
+      signupContent = signupContent.replace(
+        'import { useAuth } from "@/hooks/useAuth";',
+        'import { useAuth } from "@/hooks/useAuth";\nimport { apiPost } from "@/lib/api";\nimport ConsentCheckboxes, { type ConsentState } from "./ConsentCheckboxes";'
+      );
+
+      signupContent = signupContent.replace(
+        '  const [confirmPassword, setConfirmPassword] = useState("");',
+        '  const [confirmPassword, setConfirmPassword] = useState("");\n  const [consent, setConsent] = useState<ConsentState>({\n    privacyPolicy: false,\n    termsOfService: false,\n    marketingEmails: false,\n    analytics: false,\n  });'
+      );
+
+      signupContent = signupContent.replace(
+        "    setIsSubmitting(true);\n\n    try {\n      await signup(email, password, name);\n\n      setSuccess(true);",
+        `    if (!consent.privacyPolicy || !consent.termsOfService) {
+      setError("You must accept the Privacy Policy and Terms of Service.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await signup(email, password, name);
+
+      // Record consent after successful signup
+      try {
+        await apiPost("/api/gdpr/consent", {
+          privacyPolicy: consent.privacyPolicy,
+          termsOfService: consent.termsOfService,
+          marketingEmails: consent.marketingEmails,
+          analytics: consent.analytics,
+        });
+      } catch {
+        // Non-critical: consent recording failure shouldn't block signup
+      }
+
+      setSuccess(true);`
+      );
+
+      signupContent = signupContent.replace(
+        "          <button\n            type=\"submit\"",
+        "          <ConsentCheckboxes value={consent} onChange={setConsent} />\n\n          <button\n            type=\"submit\""
+      );
+
+      writeFileSync(signupPath, signupContent, "utf-8");
+    }
+  }
+
+  // Modify AccountSettings to include GDPR section
+  const settingsPath = join(frontendDir, "src/components/profile/AccountSettings.tsx");
+  if (existsSync(settingsPath)) {
+    let settingsContent = readFileSync(settingsPath, "utf-8");
+
+    if (!settingsContent.includes("DataExportButton")) {
+      settingsContent = settingsContent.replace(
+        'import { apiGet } from "@/lib/api";',
+        'import { apiGet, apiPost } from "@/lib/api";\nimport DataExportButton from "../gdpr/DataExportButton";\nimport AccountDeletionRequest from "../gdpr/AccountDeletionRequest";'
+      );
+
+      settingsContent = settingsContent.replace(
+        "interface Session {",
+        `interface ConsentSettings {
+  marketingEmails: boolean;
+  analytics: boolean;
+}
+
+interface Session {`
+      );
+
+      settingsContent = settingsContent.replace(
+        "  const [sessions, setSessions] = useState<Session[]>([]);",
+        `  const [consent, setConsent] = useState<ConsentSettings>({
+    marketingEmails: false,
+    analytics: false,
+  });
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [consentLoading, setConsentLoading] = useState(true);
+  const [consentSaving, setConsentSaving] = useState(false);`
+      );
+
+      settingsContent = settingsContent.replace(
+        `    async function loadSettings() {
+      try {
+        const sessionsData = await apiGet<Session[]>("/api/auth/sessions");
+        setSessions(sessionsData);
+      } catch {
+        // Settings may not exist yet
+      }
+    }`,
+        `    async function loadSettings() {
+      try {
+        const [consentData, sessionsData] = await Promise.all([
+          apiGet<ConsentSettings>("/api/gdpr/consent"),
+          apiGet<Session[]>("/api/auth/sessions"),
+        ]);
+        setConsent(consentData);
+        setSessions(sessionsData);
+      } catch {
+        // Settings may not exist yet
+      } finally {
+        setConsentLoading(false);
+      }
+    }`
+      );
+
+      settingsContent = settingsContent.replace(
+        "  return (",
+        `  const handleConsentChange = async (
+    field: keyof ConsentSettings,
+    value: boolean,
+  ) => {
+    const updated = { ...consent, [field]: value };
+    setConsent(updated);
+    setConsentSaving(true);
+
+    try {
+      await apiPost("/api/gdpr/consent", updated);
+    } catch {
+      // Revert on error
+      setConsent(consent);
+    } finally {
+      setConsentSaving(false);
+    }
+  };
+
+  return (`
+      );
+
+      writeFileSync(settingsPath, settingsContent, "utf-8");
+    }
+  }
+
+  // Generate migrations
+  try {
+    execSync("npx drizzle-kit generate", {
+      cwd: backendDir,
+      stdio: "pipe",
+    });
+  } catch {
+    // Migration generation may fail if drizzle-kit is not yet configured
+  }
+
+  // Add env vars
+  appendEnvVars(projectDir, "GDPR", {
+    DELETION_CRON_SECRET: "",
+  });
+}
+
+function installR2Storage(sailDir: string, projectDir: string): void {
+  const backendDir = join(projectDir, "packages/backend");
+  const frontendDir = join(projectDir, "packages/frontend");
+
+  // Copy backend files
+  const destStoragePath = join(backendDir, "src/services/storage.ts");
+  mkdirSync(dirname(destStoragePath), { recursive: true });
+  copyFileSync(
+    join(sailDir, "files/backend/services/storage.ts"),
+    destStoragePath
+  );
+
+  // Copy frontend files
+  const destUploadPath = join(frontendDir, "src/components/profile/ProfilePictureUpload.tsx");
+  mkdirSync(dirname(destUploadPath), { recursive: true });
+  copyFileSync(
+    join(sailDir, "files/frontend/components/ProfilePictureUpload.tsx"),
+    destUploadPath
+  );
+
+  // Add R2 env var validation
+  insertAtMarker(
+    join(backendDir, "src/env.ts"),
+    "// [SAIL_ENV_VARS]",
+    `  R2_ACCOUNT_ID: z.string().default(""),
+  R2_ACCESS_KEY_ID: z.string().default(""),
+  R2_SECRET_ACCESS_KEY: z.string().default(""),
+  R2_BUCKET_NAME: z.string().default("avatars"),
+  R2_PUBLIC_URL: z.string().default(""),`
+  );
+
+  // Add avatar routes to profile.ts
+  const profilePath = join(backendDir, "src/routes/profile.ts");
+  if (existsSync(profilePath)) {
+    let profileContent = readFileSync(profilePath, "utf-8");
+
+    // Add storage import if not present
+    if (!profileContent.includes("storage")) {
+      profileContent = profileContent.replace(
+        'import { db } from "../db/index.js";',
+        'import { db } from "../db/index.js";\nimport { generateUploadUrl, deleteObject } from "../services/storage.js";',
+      );
+    }
+
+    // Add avatar routes if not present
+    if (!profileContent.includes("/avatar/upload-url")) {
+      const avatarRoutes = `
+// POST /avatar/upload-url — generate presigned upload URL
+router.post("/avatar/upload-url", async (req, res) => {
+  const { fileType } = req.body as { fileType?: string };
+
+  if (!fileType || typeof fileType !== "string") {
+    res.status(400).json({ error: "fileType is required" });
+    return;
+  }
+
+  const result = await generateUploadUrl(req.user!.id, fileType);
+  res.json(result);
+});
+
+// DELETE /avatar — delete current avatar
+router.delete("/avatar", async (req, res) => {
+  const user = req.user!;
+
+  if (user.image) {
+    try {
+      // Extract key from the image URL or stored key
+      await deleteObject(user.image);
+    } catch {
+      // Continue even if R2 deletion fails
+    }
+  }
+
+  const [updated] = await db
+    .update(users)
+    .set({ image: null, updatedAt: new Date() })
+    .where(eq(users.id, user.id))
+    .returning();
+
+  res.json({ user: updated });
+});`;
+
+      profileContent = profileContent.replace(
+        "export default router;",
+        `${avatarRoutes}\n\nexport default router;`,
+      );
+    }
+
+    writeFileSync(profilePath, profileContent, "utf-8");
+  }
+
+  // Add ProfilePictureUpload to ProfilePage.tsx
+  const profilePagePath = join(frontendDir, "src/components/profile/ProfilePage.tsx");
+  if (existsSync(profilePagePath)) {
+    let pageContent = readFileSync(profilePagePath, "utf-8");
+
+    if (!pageContent.includes("ProfilePictureUpload")) {
+      pageContent = pageContent.replace(
+        'import { apiPatch } from "@/lib/api";',
+        'import { apiPatch } from "@/lib/api";\nimport ProfilePictureUpload from "./ProfilePictureUpload";',
+      );
+
+      pageContent = pageContent.replace(
+        '<div className="flex flex-col items-start gap-6 sm:flex-row">',
+        '<div className="flex flex-col items-start gap-6 sm:flex-row">\n          <ProfilePictureUpload />',
+      );
+    }
+
+    writeFileSync(profilePagePath, pageContent, "utf-8");
+  }
+
+  // Install dependencies
+  const manifest: SailManifest = JSON.parse(
+    readFileSync(join(sailDir, "addon.json"), "utf-8")
+  );
+  installDeps(manifest.dependencies.backend, "packages/backend", projectDir);
+  installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
+
+  // Add env vars
+  appendEnvVars(projectDir, "Cloudflare R2 Storage", {
+    R2_ACCOUNT_ID: "",
+    R2_ACCESS_KEY_ID: "",
+    R2_SECRET_ACCESS_KEY: "",
+    R2_BUCKET_NAME: "avatars",
+    R2_PUBLIC_URL: "",
+  });
+}
+
 function installFileUploads(sailDir: string, projectDir: string): void {
   const backendDir = join(projectDir, "packages/backend");
   const frontendDir = join(projectDir, "packages/frontend");
@@ -774,9 +1188,11 @@ export async function installSailByName(
       break;
 
     case "gdpr":
+      installGdpr(sailDir, projectDir);
+      break;
+
     case "r2-storage":
-      // These sails have their own install.ts with setup wizards
-      // They are invoked directly from manage.ts, not through this switch
+      installR2Storage(sailDir, projectDir);
       break;
 
     default:
