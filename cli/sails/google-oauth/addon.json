@@ -1,0 +1,22 @@
+{
+  "name": "google-oauth",
+  "displayName": "Google OAuth",
+  "description": "Adds Google OAuth sign-in via BetterAuth social provider",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "GOOGLE_CLIENT_ID", "description": "Google OAuth Client ID from Google Cloud Console" },
+    { "key": "GOOGLE_CLIENT_SECRET", "description": "Google OAuth Client Secret" }
+  ],
+  "dependencies": {
+    "backend": {},
+    "frontend": {}
+  },
+  "modifies": {
+    "backend": ["src/auth/index.ts", "src/env.ts"],
+    "frontend": ["src/components/auth/LoginForm.tsx", "src/components/auth/SignupForm.tsx"]
+  },
+  "adds": {
+    "frontend": ["src/components/auth/GoogleButton.tsx"]
+  }
+}

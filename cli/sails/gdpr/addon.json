@@ -1,0 +1,27 @@
+{
+  "name": "gdpr",
+  "displayName": "GDPR/DSGVO Compliance",
+  "description": "Full GDPR compliance: consent tracking, data export, account deletion (30-day grace period), privacy policy page",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "DELETION_CRON_SECRET", "description": "Secret for the deletion cron endpoint" }
+  ],
+  "dependencies": {
+    "backend": {},
+    "frontend": {}
+  },
+  "modifies": {
+    "backend": ["src/index.ts", "src/db/schema.ts", "src/env.ts"],
+    "frontend": ["src/router.tsx", "src/components/auth/SignupForm.tsx", "src/components/profile/AccountSettings.tsx"]
+  },
+  "adds": {
+    "backend": ["src/services/gdpr.ts", "src/routes/gdpr.ts"],
+    "frontend": [
+      "src/components/gdpr/DataExportButton.tsx",
+      "src/components/gdpr/AccountDeletionRequest.tsx",
+      "src/components/auth/ConsentCheckboxes.tsx",
+      "src/pages/PrivacyPolicy.tsx"
+    ]
+  }
+}

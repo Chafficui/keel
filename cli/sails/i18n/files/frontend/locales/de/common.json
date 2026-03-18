@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "login": "Anmelden",
+    "signup": "Registrieren",
+    "logout": "Abmelden"
+  },
+  "auth": {
+    "loginTitle": "Willkommen zurueck",
+    "signupTitle": "Konto erstellen",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestaetigen",
+    "name": "Name",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Noch kein Konto?",
+    "hasAccount": "Bereits ein Konto?",
+    "resetPassword": "Passwort zuruecksetzen",
+    "loginButton": "Anmelden",
+    "signupButton": "Registrieren",
+    "resetButton": "Link senden"
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Profil bearbeiten",
+    "name": "Name",
+    "email": "E-Mail",
+    "memberSince": "Mitglied seit"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Loeschen",
+    "loading": "Laden...",
+    "error": "Etwas ist schiefgelaufen",
+    "success": "Erfolgreich",
+    "confirm": "Bestaetigen",
+    "back": "Zurueck",
+    "search": "Suche",
+    "noResults": "Keine Ergebnisse gefunden"
+  }
+}

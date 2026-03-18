@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "settings": "Settings",
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out"
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "signupTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "name": "Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "resetPassword": "Reset password",
+    "loginButton": "Log in",
+    "signupButton": "Sign up",
+    "resetButton": "Send reset link"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit profile",
+    "name": "Name",
+    "email": "Email",
+    "memberSince": "Member since"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "search": "Search",
+    "noResults": "No results found"
+  }
+}

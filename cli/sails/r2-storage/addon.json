@@ -1,0 +1,29 @@
+{
+  "name": "r2-storage",
+  "displayName": "Cloudflare R2 Storage",
+  "description": "File uploads via Cloudflare R2 with presigned URLs. Adds profile picture upload.",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "R2_ACCOUNT_ID", "description": "Cloudflare R2 account ID" },
+    { "key": "R2_ACCESS_KEY_ID", "description": "R2 access key ID" },
+    { "key": "R2_SECRET_ACCESS_KEY", "description": "R2 secret access key" },
+    { "key": "R2_BUCKET_NAME", "description": "R2 bucket name (e.g., avatars)" },
+    { "key": "R2_PUBLIC_URL", "description": "R2 public URL for serving files" }
+  ],
+  "dependencies": {
+    "backend": {
+      "@aws-sdk/client-s3": "^3.700.0",
+      "@aws-sdk/s3-request-presigner": "^3.700.0"
+    },
+    "frontend": {}
+  },
+  "modifies": {
+    "backend": ["src/routes/profile.ts", "src/env.ts"],
+    "frontend": ["src/components/profile/ProfilePage.tsx"]
+  },
+  "adds": {
+    "backend": ["src/services/storage.ts"],
+    "frontend": ["src/components/profile/ProfilePictureUpload.tsx"]
+  }
+}

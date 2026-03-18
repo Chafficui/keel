@@ -1,0 +1,28 @@
+{
+  "name": "admin-dashboard",
+  "displayName": "Admin Dashboard",
+  "description": "Admin dashboard for user management, metrics, and basic analytics",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "ADMIN_EMAILS", "description": "Comma-separated list of admin email addresses" }
+  ],
+  "dependencies": {
+    "backend": {},
+    "frontend": { "recharts": "^2.15.0" }
+  },
+  "modifies": {
+    "backend": ["src/index.ts", "src/env.ts"],
+    "frontend": ["src/router.tsx"]
+  },
+  "adds": {
+    "backend": ["src/middleware/admin.ts", "src/routes/admin.ts"],
+    "frontend": [
+      "src/pages/admin/Dashboard.tsx",
+      "src/pages/admin/UserDetail.tsx",
+      "src/components/admin/StatsCard.tsx",
+      "src/components/admin/UsersTable.tsx",
+      "src/hooks/useAdmin.ts"
+    ]
+  }
+}

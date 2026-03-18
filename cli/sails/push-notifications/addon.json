@@ -1,0 +1,31 @@
+{
+  "name": "push-notifications",
+  "displayName": "Push Notifications",
+  "description": "Push notifications via Capacitor + Firebase Cloud Messaging with device token management and server-side sending",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "FIREBASE_PROJECT_ID", "description": "Firebase project ID (from Firebase Console > Project Settings)" },
+    { "key": "FIREBASE_PRIVATE_KEY", "description": "Firebase service account private key (the full PEM key including -----BEGIN/END-----)" },
+    { "key": "FIREBASE_CLIENT_EMAIL", "description": "Firebase service account client email (e.g., firebase-adminsdk-xxxxx@project.iam.gserviceaccount.com)" }
+  ],
+  "dependencies": {
+    "backend": { "firebase-admin": "^13.0.0" },
+    "frontend": { "@capacitor/push-notifications": "^6.0.0" }
+  },
+  "modifies": {
+    "backend": ["src/index.ts", "src/db/schema/index.ts", "src/env.ts"],
+    "frontend": ["src/components/layout/Layout.tsx"]
+  },
+  "adds": {
+    "backend": [
+      "src/db/schema/notifications.ts",
+      "src/routes/notifications.ts",
+      "src/services/notifications.ts"
+    ],
+    "frontend": [
+      "src/hooks/usePushNotifications.ts",
+      "src/components/PushNotificationInit.tsx"
+    ]
+  }
+}

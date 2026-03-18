@@ -1,0 +1,20 @@
+{
+  "name": "sail-name",
+  "displayName": "Sail Display Name",
+  "description": "What this sail does",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [],
+  "dependencies": {
+    "backend": {},
+    "frontend": {}
+  },
+  "modifies": {
+    "backend": [],
+    "frontend": []
+  },
+  "adds": {
+    "backend": [],
+    "frontend": []
+  }
+}

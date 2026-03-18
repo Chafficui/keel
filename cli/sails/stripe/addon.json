@@ -1,0 +1,24 @@
+{
+  "name": "stripe",
+  "displayName": "Stripe Payments",
+  "description": "Adds Stripe subscription management with checkout, webhooks, and customer portal",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "STRIPE_SECRET_KEY", "description": "Stripe secret key (sk_test_... or sk_live_...)" },
+    { "key": "STRIPE_PUBLISHABLE_KEY", "description": "Stripe publishable key (pk_test_... or pk_live_...)" },
+    { "key": "STRIPE_WEBHOOK_SECRET", "description": "Stripe webhook signing secret (whsec_...)" }
+  ],
+  "dependencies": {
+    "backend": { "stripe": "^17.0.0" },
+    "frontend": { "@stripe/react-stripe-js": "^3.0.0", "@stripe/stripe-js": "^5.0.0" }
+  },
+  "modifies": {
+    "backend": ["src/index.ts", "src/db/schema/index.ts", "src/env.ts"],
+    "frontend": ["src/router.tsx"]
+  },
+  "adds": {
+    "backend": ["src/db/schema/stripe.ts", "src/routes/stripe.ts", "src/services/stripe.ts"],
+    "frontend": ["src/pages/Pricing.tsx", "src/pages/Checkout.tsx", "src/components/stripe/SubscriptionStatus.tsx", "src/hooks/useSubscription.ts"]
+  }
+}

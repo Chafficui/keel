@@ -1,0 +1,33 @@
+{
+  "name": "@chafficui/keel",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CLI tool for keel (a codai project): create projects and manage sails",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chafficui/keel.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "bin": {
+    "create-keel": "./dist/create.js",
+    "keel": "./dist/manage.js"
+  },
+  "files": ["dist", "sails"],
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsx src/create.ts"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0",
+    "chalk": "^5.4.0",
+    "degit": "^2.8.8",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.0.0"
+  }
+}

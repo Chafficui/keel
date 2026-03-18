@@ -1,0 +1,27 @@
+{
+  "name": "analytics",
+  "displayName": "PostHog Analytics",
+  "description": "Privacy-friendly analytics with PostHog — auto page views, user identification, and custom event tracking",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [
+    { "key": "VITE_POSTHOG_KEY", "description": "PostHog project API key" },
+    { "key": "VITE_POSTHOG_HOST", "description": "PostHog instance URL (e.g., https://us.i.posthog.com)" }
+  ],
+  "dependencies": {
+    "backend": {},
+    "frontend": { "posthog-js": "^1.200.0" }
+  },
+  "modifies": {
+    "backend": [],
+    "frontend": ["src/App.tsx"]
+  },
+  "adds": {
+    "backend": [],
+    "frontend": [
+      "src/lib/analytics.ts",
+      "src/hooks/useAnalytics.ts",
+      "src/components/AnalyticsProvider.tsx"
+    ]
+  }
+}

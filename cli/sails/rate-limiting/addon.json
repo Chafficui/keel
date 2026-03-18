@@ -1,0 +1,20 @@
+{
+  "name": "rate-limiting",
+  "displayName": "API Rate Limiting",
+  "description": "In-memory sliding window rate limiting middleware for API routes. No external dependencies required.",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [],
+  "dependencies": {
+    "backend": {},
+    "frontend": {}
+  },
+  "modifies": {
+    "backend": ["src/index.ts", "src/env.ts"],
+    "frontend": []
+  },
+  "adds": {
+    "backend": ["src/middleware/rate-limit.ts", "src/middleware/rate-limit-store.ts"],
+    "frontend": []
+  }
+}

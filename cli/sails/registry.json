@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "sails": [
+    {
+      "name": "google-oauth",
+      "displayName": "Google OAuth",
+      "description": "Google OAuth provider for BetterAuth — adds Google sign-in button",
+      "category": "auth",
+      "version": "1.0.0"
+    },
+    {
+      "name": "stripe",
+      "displayName": "Stripe Payments",
+      "description": "Stripe subscriptions with checkout, webhooks, and customer portal",
+      "category": "payments",
+      "version": "1.0.0"
+    },
+    {
+      "name": "r2-storage",
+      "displayName": "Cloudflare R2 Storage",
+      "description": "File uploads via Cloudflare R2 with presigned URLs. Adds profile picture upload.",
+      "category": "storage",
+      "version": "1.0.0"
+    },
+    {
+      "name": "push-notifications",
+      "displayName": "Push Notifications",
+      "description": "Push notifications via Capacitor + Firebase Cloud Messaging with device token management and server-side sending",
+      "category": "mobile",
+      "version": "1.0.0"
+    },
+    {
+      "name": "analytics",
+      "displayName": "PostHog Analytics",
+      "description": "Privacy-friendly analytics with PostHog — auto page views, user identification, and custom event tracking",
+      "category": "tracking",
+      "version": "1.0.0"
+    },
+    {
+      "name": "admin-dashboard",
+      "displayName": "Admin Dashboard",
+      "description": "Admin dashboard for user management, metrics, and basic analytics",
+      "category": "admin",
+      "version": "1.0.0"
+    },
+    {
+      "name": "i18n",
+      "displayName": "Internationalization",
+      "description": "Multi-language support with i18next, react-i18next, and language detection",
+      "category": "localization",
+      "version": "1.0.0"
+    },
+    {
+      "name": "rate-limiting",
+      "displayName": "Rate Limiting",
+      "description": "API rate limiting middleware",
+      "category": "security",
+      "version": "1.0.0",
+      "status": "planned"
+    },
+    {
+      "name": "file-uploads",
+      "displayName": "File Uploads",
+      "description": "Generic file upload system with R2/S3 storage",
+      "category": "storage",
+      "version": "1.0.0",
+      "status": "planned"
+    },
+    {
+      "name": "gdpr",
+      "displayName": "GDPR/DSGVO Compliance",
+      "description": "Full GDPR compliance: consent tracking, data export, account deletion (30-day grace period), privacy policy page",
+      "category": "compliance",
+      "version": "1.0.0"
+    }
+  ]
+}

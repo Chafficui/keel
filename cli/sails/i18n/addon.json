@@ -1,0 +1,30 @@
+{
+  "name": "i18n",
+  "displayName": "Internationalization (i18n)",
+  "description": "Multi-language support with i18next, react-i18next, and automatic language detection",
+  "version": "1.0.0",
+  "compatibility": ">=1.0.0",
+  "requiredEnvVars": [],
+  "dependencies": {
+    "backend": {},
+    "frontend": {
+      "i18next": "^24.0.0",
+      "react-i18next": "^15.0.0",
+      "i18next-browser-languagedetector": "^8.0.0"
+    }
+  },
+  "modifies": {
+    "backend": [],
+    "frontend": ["src/main.tsx", "src/components/layout/Header.tsx"]
+  },
+  "adds": {
+    "backend": [],
+    "frontend": [
+      "src/lib/i18n.ts",
+      "src/locales/en/common.json",
+      "src/locales/de/common.json",
+      "src/hooks/useLanguage.ts",
+      "src/components/LanguageSwitcher.tsx"
+    ]
+  }
+}
