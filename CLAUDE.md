@@ -2,7 +2,7 @@
 
 ## What is this?
 
-A full-stack template repository for creating web + mobile applications. Projects are created via `npx create-keel my-project`. The template includes authentication, GDPR compliance, profile management, email templates, and native mobile support out of the box.
+A full-stack template repository for creating web + mobile applications. Projects are created via `npx keel create my-project`. The template includes authentication, email templates, database, and native mobile support out of the box. Additional features (GDPR, Stripe, Google OAuth, file storage) are added via the sail system.
 
 ## Tech Stack
 
@@ -14,7 +14,6 @@ A full-stack template repository for creating web + mobile applications. Project
 | Auth | BetterAuth | Drizzle adapter, hybrid cookie/Bearer |
 | Email | Resend + React Email | Templated transactional emails |
 | Database | PostgreSQL + Drizzle ORM | Declarative schema, migration-based |
-| Storage | Cloudflare R2 | S3-compatible, presigned URLs |
 | Hosting | Vercel (frontend) + Railway (backend) | Config files included |
 
 ## Monorepo Structure
@@ -27,34 +26,81 @@ packages/
   backend/    → @keel/backend  — Express 5 API server
 sails/        → Minimal tracker only (installed.json) — sail code is NOT bundled here
 cli/          → "keel" npm package — project creation + sail management
-  sails/      → Sail definitions bundled with the CLI (google-oauth, stripe, etc.)
+  sails/      → Sail definitions bundled with the CLI
+    registry.json — Master list of all sails and their status
+    google-oauth/ — addon.json, install.ts, files/, README.md
+    stripe/       — addon.json, install.ts, files/, README.md
+  src/
+    create.ts         — "create-keel" entry point (project scaffolding)
+    create-runner.ts  — Shared create logic (banner, prompts, scaffold, sails)
+    manage.ts         — "keel" entry point (all CLI commands)
+    scaffold.ts       — Cloning, branding, env, deps, git init
+    prompts.ts        — Interactive wizard + --yes flag support
+    sail-installer.ts — Core sail install logic (file copy, marker insertion)
+brand/        → Keel brand guidelines and assets (for CLI and keel.codai.app)
 docs/         → Detailed guides
 ```
 
-## Key Commands
+## CLI Commands
 
+### Project Creation
 ```bash
-# Development
-npm run dev:frontend          # Vite dev server at :5173
-npm run dev:backend           # Express with tsx watch at :3005
-npm run dev:email             # React Email preview at :3010
+npx keel create my-app                              # Interactive wizard
+npx keel create my-app --yes                         # All defaults, no prompts
+npx keel create my-app --yes --db=docker             # Specify database
+npx keel create my-app --yes --db=url --db-url=...   # Custom DB URL
+npx keel create my-app --yes --sails=stripe,google-oauth
+npx keel create my-app --yes --resend-key=re_xxx --email-from=noreply@x.com
+```
 
-# Database
-npm run db:generate           # Generate Drizzle migration from schema changes
-npm run db:migrate            # Apply pending migrations
-npm run db:push               # Push schema directly (dev only)
-npm run db:studio             # Open Drizzle Studio GUI
+### Development
+```bash
+keel dev                          # Docker up + migrate + dev servers
+keel start                        # Docker up + migrate + build + production
+```
 
-# Build
-npm run build                 # Build all packages (shared → email → frontend + backend)
+### Project Management
+```bash
+keel doctor                       # Health check (Node, Docker, DB, .env, deps)
+keel env                          # Show env var status (set/missing)
+keel upgrade                      # Check for CLI updates
+```
 
-# Capacitor
-npm run cap:sync              # Sync web build to native projects
-npm run cap:ios               # Run on iOS simulator
-npm run cap:android           # Run on Android emulator
+### Code Generators
+```bash
+keel generate route <name>        # Scaffold Express route
+keel generate page <name>         # Scaffold React page
+keel generate email <name>        # Scaffold React Email template
+keel g route <name>               # Shorthand
+```
 
-# Type checking
-npm run typecheck             # Type check all packages
+### Sail Management
+```bash
+keel sail add <name>              # Install a sail
+keel sail remove <name>           # Remove a sail
+keel list                         # List all sails with status
+keel info <name>                  # Show sail details
+```
+
+### Database
+```bash
+keel db:reset                     # Drop schema + re-migrate (confirms first)
+keel db:studio                    # Open Drizzle Studio
+keel db:seed                      # Run seed.ts if it exists
+```
+
+### npm Scripts (inside a project)
+```bash
+npm run dev                       # Build shared+email, then concurrently run frontend+backend
+npm run dev:frontend              # Vite dev server at :5173
+npm run dev:backend               # Express with tsx watch at :3005
+npm run dev:email                 # React Email preview at :3010
+npm run build                     # Build all packages
+npm run db:generate               # Generate Drizzle migration from schema changes
+npm run db:migrate                # Apply pending migrations
+npm run db:push                   # Push schema directly (dev only)
+npm run db:studio                 # Open Drizzle Studio GUI
+npm run typecheck                 # Type check all packages
 ```
 
 ## Architecture Decisions
@@ -74,18 +120,13 @@ npm run typecheck             # Type check all packages
 ### Frontend API Calls
 - Web dev: relative paths via Vite proxy (`/api/...`)
 - Production + Native: absolute URL from `VITE_API_URL`
+- Vite proxy silently returns 502 if backend isn't ready (no error spam)
 - File: `frontend/src/lib/api.ts`
 
-### GDPR Compliance
-- Consent recorded with timestamps, IP, user agent, policy version
-- Data export: `GET /api/gdpr/export` returns all user data as JSON
-- Account deletion: 30-day grace period, cancellable, cron-processed
-- Files: `backend/src/services/gdpr.ts`, `backend/src/routes/gdpr.ts`
-
-### Profile Pictures
-- Presigned PUT URL generated by backend → frontend uploads directly to R2
-- Native: uses `@capacitor/camera` for capture
-- Files: `backend/src/services/storage.ts`, `frontend/src/components/profile/ProfilePictureUpload.tsx`
+### Dev Mode
+- Emails auto-verify in development (no email sending required)
+- Backend logs emails to console when RESEND_API_KEY is not set
+- `npm run dev` builds shared+email first, then runs frontend+backend concurrently
 
 ## Database Schema
 
@@ -95,66 +136,55 @@ npm run typecheck             # Type check all packages
 - `account` — id, userId(FK), providerId, accountId, password(hashed), tokens
 - `verification` — id, identifier, value(token), expiresAt
 
-### GDPR Tables
-- `consent_record` — userId, consentType, granted, version, ipAddress, userAgent, grantedAt, revokedAt
-- `deletion_request` — userId, status(pending|cancelled|completed), scheduledDeletionAt, reason
-
 Schema files: `backend/src/db/schema/`
 
 ## Sail System
 
 Sails are **not** bundled into each project. They are fetched on-demand from the `keel` CLI package.
 
-### Architecture
-
-```
-/sails/                     <-- Template root (shipped to every project, minimal)
-  installed.json            <-- Tracks which sails are installed ({ "installed": [] })
-  .gitkeep
-
-/cli/                       <-- Published as npm package "keel"
-  sails/                    <-- Sail definitions bundled with the CLI
-    registry.json           <-- Master list of all sails and their status
-    _template/              <-- Reference implementation for new sails
-    google-oauth/           <-- sail.json, install.ts, files/, README.md
-    stripe/                 <-- sail.json, install.ts, files/, README.md
-  src/
-    create.ts               <-- "create-keel" entry point (project scaffolding)
-    manage.ts               <-- "keel" entry point (sail management)
-    scaffold.ts             <-- Cloning, branding, env, deps, git init
-    prompts.ts              <-- Interactive wizard prompts
-    sail-installer.ts       <-- Core sail install logic (file copy, marker insertion)
-```
-
 ### How it works
 
-1. **Project creation**: `npx create-keel my-project` scaffolds a clean project with NO sail code, just marker comments and `sails/installed.json`.
+1. **Project creation**: `npx keel create my-project` scaffolds a clean project with NO sail code, just marker comments and `sails/installed.json`.
 
-2. **Installing a sail**: From inside a project, run:
+2. **Installing a sail**: From inside a project:
    ```bash
    npx keel sail add google-oauth
    ```
-   This fetches the sail definition from the CLI package, copies files, inserts code at markers, installs deps, and updates `sails/installed.json`.
+   Copies files, inserts code at markers, installs deps, updates `sails/installed.json`.
+   If a marker is missing (user modified the file), prints manual instructions instead of failing.
 
-3. **Listing sails**: `npx keel list` shows all available sails and their install status.
+3. **Removing a sail**: `npx keel sail remove <name>` deletes added files, updates installed.json, prints manual cleanup instructions for modified files.
 
-4. **Sail info**: `npx keel info <name>` shows env vars, files added/modified, and dependencies.
+4. **Listing sails**: `npx keel list` shows all available sails and their install status.
 
 ### Marker comments
 
 Sails inject code at marker comments in base files:
 ```
-// [SAIL_IMPORTS]           -- in backend/src/index.ts, schema/index.ts, frontend router
-// [SAIL_ROUTES]            -- in backend/src/index.ts, frontend/src/router.tsx
-// [SAIL_SCHEMA]            -- in backend/src/db/schema/index.ts
-// [SAIL_SOCIAL_PROVIDERS]  -- in backend/src/auth/index.ts
-// [SAIL_ENV_VARS]          -- in backend/src/env.ts
-{/* [SAIL_SOCIAL_BUTTONS] */} -- in frontend login/signup forms
+// [SAIL_IMPORTS]              — backend/src/index.ts, frontend/src/router.tsx, LoginForm, SignupForm
+// [SAIL_ROUTES]               — backend/src/index.ts
+{/* [SAIL_ROUTES] */}          — frontend/src/router.tsx (JSX comment format)
+// [SAIL_SCHEMA]               — backend/src/db/schema/index.ts
+// [SAIL_SOCIAL_PROVIDERS]     — backend/src/auth/index.ts
+// [SAIL_ENV_VARS]             — backend/src/env.ts
+{/* [SAIL_SOCIAL_BUTTONS] */}  — frontend LoginForm.tsx, SignupForm.tsx
+{/* [SAIL_FOOTER_LINKS] */}    — frontend Footer.tsx
 ```
 
 ### Available sails
 
-`google-oauth` (auth), `stripe` (payments). Planned: push-notifications, analytics, admin-dashboard, i18n, rate-limiting, file-uploads.
+| Sail | Category | Status |
+|------|----------|--------|
+| google-oauth | Auth | Available |
+| stripe | Payments | Available |
+| gdpr | Compliance | Available |
+| r2-storage | Storage | Available |
+| push-notifications | Mobile | Available |
+| analytics | Tracking | Available |
+| admin-dashboard | Admin | Available |
+| i18n | i18n | Available |
+| rate-limiting | Security | Planned |
+| file-uploads | Storage | Planned |
 
 ## Common Tasks
 
@@ -162,7 +192,7 @@ Sails inject code at marker comments in base files:
 1. Create route file in `backend/src/routes/myroute.ts`
 2. Import and mount in `backend/src/index.ts` (before the SAIL markers)
 3. Add types to `shared/src/types/` if needed
-4. Add Zod validators to `shared/src/validators/` if needed
+4. Or use: `keel generate route myroute`
 
 ### Add a new database table
 1. Create schema in `backend/src/db/schema/mytable.ts`
@@ -173,11 +203,13 @@ Sails inject code at marker comments in base files:
 1. Create page component in `frontend/src/pages/MyPage.tsx`
 2. Add route in `frontend/src/router.tsx`
 3. If protected, wrap with `<ProtectedRoute>`
+4. Or use: `keel generate page mypage`
 
 ### Add a new email template
 1. Create template in `packages/email/src/my-email.tsx`
 2. Export from `packages/email/src/index.ts`
 3. Import and render in `backend/src/auth/email.ts` using `@react-email/render`
+4. Or use: `keel generate email my-email`
 
 ### Modify auth configuration
 - BetterAuth server config: `backend/src/auth/index.ts`
@@ -186,23 +218,17 @@ Sails inject code at marker comments in base files:
 
 ## Environment Variables
 
-### Backend (.env)
+### Backend (.env) — Core (always required)
 | Variable | Description |
 |----------|-------------|
+| DATABASE_URL | PostgreSQL connection string |
+| BETTER_AUTH_SECRET | Secret for signing sessions |
 | PORT | Server port (default: 3005) |
 | NODE_ENV | development / production |
-| DATABASE_URL | PostgreSQL connection string |
 | BACKEND_URL | Public backend URL |
 | FRONTEND_URL | Public frontend URL |
-| BETTER_AUTH_SECRET | Secret for signing sessions |
-| RESEND_API_KEY | Resend API key for emails |
+| RESEND_API_KEY | Resend API key for emails (optional in dev) |
 | EMAIL_FROM | Sender email address |
-| R2_ACCOUNT_ID | Cloudflare R2 account |
-| R2_ACCESS_KEY_ID | R2 access key |
-| R2_SECRET_ACCESS_KEY | R2 secret key |
-| R2_BUCKET_NAME | R2 bucket name |
-| R2_PUBLIC_URL | R2 public URL for serving files |
-| DELETION_CRON_SECRET | Secret for cron deletion endpoint |
 
 ### Frontend (.env)
 | Variable | Description |
@@ -210,9 +236,17 @@ Sails inject code at marker comments in base files:
 | VITE_API_URL | Backend API URL (empty for dev proxy) |
 | VITE_APP_NAME | Application display name |
 
+### Sail-specific env vars (only needed when sail is installed)
+| Sail | Variables |
+|------|-----------|
+| google-oauth | GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET |
+| stripe | STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET |
+| r2-storage | R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL |
+| gdpr | DELETION_CRON_SECRET |
+
 ## Brand
 
-The `brand/` folder contains Keel's own brand guidelines and assets (for the CLI and keel.dev). Consumer apps should replace all branding with their own.
+The `brand/` folder contains Keel's own brand guidelines and assets (for the CLI and keel.codai.app). Consumer apps should replace all branding with their own.
 
 ## File Import Convention
 - All `.ts` imports use `.js` extension (ESM + NodeNext requirement)
