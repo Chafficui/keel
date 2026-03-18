@@ -122,4 +122,7 @@ export async function main(args: string[] = []): Promise<void> {
     console.log(chalk.yellow("  Reminder: Configure RESEND_API_KEY in .env for email functionality."));
     console.log();
   }
+
+  // Force exit — inquirer/ora can leave open handles
+  process.exit(0);
 }
