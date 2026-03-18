@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && npm run build:shared && npm run build:email && npm run build -w packages/frontend",
   "outputDirectory": "dist",
-  "installCommand": "cd ../.. && npm install",
+  "installCommand": "cd ../.. && npm install --include=dev",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
