@@ -22,7 +22,7 @@
   "dependencies": {
     "@inquirer/prompts": "^7.0.0",
     "chalk": "^5.4.0",
-    "degit": "^2.8.8",
+    "degit": "^2.8.4",
     "ora": "^8.2.0"
   },
   "devDependencies": {
