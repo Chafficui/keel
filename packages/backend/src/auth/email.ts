@@ -15,7 +15,7 @@ export async function sendVerificationEmail(
   email: string,
   url: string,
 ): Promise<void> {
-  const html = await render(VerificationEmail({ url }));
+  const html = await render(VerificationEmail({ verificationUrl: url }));
   await sendEmail({ to: email, subject: "Verify your email address", html });
 }
 
@@ -23,7 +23,7 @@ export async function sendWelcomeEmail(
   email: string,
   name: string,
 ): Promise<void> {
-  const html = await render(WelcomeEmail({ name }));
+  const html = await render(WelcomeEmail({ userName: name }));
   await sendEmail({ to: email, subject: "Welcome to Keel!", html });
 }
 
@@ -31,7 +31,7 @@ export async function sendPasswordResetEmail(
   email: string,
   url: string,
 ): Promise<void> {
-  const html = await render(PasswordResetEmail({ url }));
+  const html = await render(PasswordResetEmail({ resetUrl: url }));
   await sendEmail({ to: email, subject: "Reset your password", html });
 }
 

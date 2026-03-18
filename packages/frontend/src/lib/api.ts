@@ -2,8 +2,8 @@ import { isNative } from "./capacitor";
 import { Preferences } from "@capacitor/preferences";
 
 function getBaseURL(): string {
-  if (isNative || import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL || "";
+  if (isNative || import.meta.env["VITE_API_URL"]) {
+    return (import.meta.env["VITE_API_URL"] as string) || "";
   }
   return "";
 }
