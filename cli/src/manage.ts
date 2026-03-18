@@ -1009,7 +1009,7 @@ async function commandUpgrade(): Promise<void> {
 
   // Check latest version
   try {
-    const latest = execSync("npm view @chafficui/keel version", { stdio: "pipe" }).toString().trim();
+    const latest = execSync("npm view keel version", { stdio: "pipe" }).toString().trim();
     console.log(`  Latest version:  ${chalk.cyan(latest)}`);
   } catch {
     console.log(chalk.gray("  Could not check latest version."));
@@ -1017,10 +1017,10 @@ async function commandUpgrade(): Promise<void> {
 
   console.log();
   console.log(chalk.bold("  To upgrade, run:"));
-  console.log(chalk.cyan("    npm install -g @chafficui/keel@latest"));
+  console.log(chalk.cyan("    npm install -g keel@latest"));
   console.log();
   console.log(chalk.gray("  Or use npx to always run the latest:"));
-  console.log(chalk.cyan("    npx @chafficui/keel@latest <command>"));
+  console.log(chalk.cyan("    npx keel@latest <command>"));
   console.log();
 }
 
@@ -1149,11 +1149,11 @@ function printUsage(): void {
   console.log();
 
   console.log("  Examples:");
-  console.log(chalk.gray("    npx @chafficui/keel create my-app"));
-  console.log(chalk.gray("    npx @chafficui/keel dev"));
-  console.log(chalk.gray("    npx @chafficui/keel sail add google-oauth"));
-  console.log(chalk.gray("    npx @chafficui/keel generate route users"));
-  console.log(chalk.gray("    npx @chafficui/keel doctor"));
+  console.log(chalk.gray("    npx keel create my-app"));
+  console.log(chalk.gray("    npx keel dev"));
+  console.log(chalk.gray("    npx keel sail add google-oauth"));
+  console.log(chalk.gray("    npx keel generate route users"));
+  console.log(chalk.gray("    npx keel doctor"));
   console.log();
 }
 

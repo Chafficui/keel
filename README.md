@@ -39,7 +39,7 @@
 
 ```bash
 # Create a new project
-npx @chafficui/keel create my-app
+npx keel create my-app
 
 # Follow the setup wizard — it configures everything:
 #   → Project name & branding
@@ -123,13 +123,13 @@ Sails are optional packages that add functionality to your Keel project. They're
 
 ```bash
 # List available sails
-npx @chafficui/keel list
+npx keel list
 
 # Install a sail (runs interactive setup wizard)
-npx @chafficui/keel sail add google-oauth
+npx keel sail add google-oauth
 
 # Get info about a sail before installing
-npx @chafficui/keel info stripe
+npx keel info stripe
 ```
 
 ### Available Sails

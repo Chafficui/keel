@@ -1,5 +1,5 @@
 {
-  "name": "@chafficui/keel",
+  "name": "keel",
   "version": "2.0.7",
   "type": "module",
   "description": "CLI tool for keel (a codai project): create projects and manage sails",
@@ -8,7 +8,7 @@
     "url": "https://github.com/Chafficui/keel.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "bin": {
     "create-keel": "./dist/create.js",
