@@ -209,8 +209,8 @@ function installGoogleOAuth(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
-  GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET is required"),`
+    `  GOOGLE_CLIENT_ID: z.string().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().default(""),`
   );
 
   // Modify login and signup forms
@@ -285,9 +285,9 @@ function installPushNotifications(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  FIREBASE_PROJECT_ID: z.string().min(1, "FIREBASE_PROJECT_ID is required"),
-  FIREBASE_PRIVATE_KEY: z.string().min(1, "FIREBASE_PRIVATE_KEY is required"),
-  FIREBASE_CLIENT_EMAIL: z.string().min(1, "FIREBASE_CLIENT_EMAIL is required"),`
+    `  FIREBASE_PROJECT_ID: z.string().default(""),
+  FIREBASE_PRIVATE_KEY: z.string().default(""),
+  FIREBASE_CLIENT_EMAIL: z.string().default(""),`
   );
 
   // Modify Layout.tsx to include PushNotificationInit
@@ -438,9 +438,9 @@ function installStripe(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
-  STRIPE_PUBLISHABLE_KEY: z.string().min(1, "STRIPE_PUBLISHABLE_KEY is required"),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),`
+    `  STRIPE_SECRET_KEY: z.string().default(""),
+  STRIPE_PUBLISHABLE_KEY: z.string().default(""),
+  STRIPE_WEBHOOK_SECRET: z.string().default(""),`
   );
 
   // Modify frontend router
