@@ -174,11 +174,20 @@ function cleanupSailsFolder(targetDir: string): void {
     "utf-8"
   );
 
-  // Remove the cli/ directory from the scaffolded project (it's the tooling,
-  // not part of the created project)
-  const cliDir = join(targetDir, "cli");
-  if (existsSync(cliDir)) {
-    rmSync(cliDir, { recursive: true, force: true });
+  // Remove directories/files that belong to the keel tooling, not the project
+  const toRemove = [
+    "cli",           // CLI tool source
+    "brand",         // Keel brand assets
+    "README.md",     // Keel's own README
+    "CLAUDE.md",     // Keel's AI documentation
+    ".claude",       // Claude memory
+  ];
+
+  for (const name of toRemove) {
+    const fullPath = join(targetDir, name);
+    if (existsSync(fullPath)) {
+      rmSync(fullPath, { recursive: true, force: true });
+    }
   }
 }
 
@@ -197,12 +206,31 @@ export async function scaffold(config: ProjectConfig): Promise<boolean> {
   }
 
   try {
-    const emitter = degit(TEMPLATE_REPO, {
-      cache: false,
-      force: true,
-      verbose: false,
-    });
-    await emitter.clone(targetDir);
+    // Try degit first (fast, no git history) — works for public repos
+    // Falls back to git clone for private repos (uses existing git credentials)
+    let cloned = false;
+
+    try {
+      const emitter = degit(TEMPLATE_REPO, {
+        cache: false,
+        force: true,
+        verbose: false,
+      });
+      await emitter.clone(targetDir);
+      cloned = true;
+    } catch {
+      // degit failed (likely private repo) — fall back to git clone
+    }
+
+    if (!cloned) {
+      execSync(
+        `git clone --depth 1 https://github.com/${TEMPLATE_REPO}.git "${targetDir}"`,
+        { stdio: "pipe" }
+      );
+      // Remove .git from the clone (we'll init fresh later)
+      rmSync(join(targetDir, ".git"), { recursive: true, force: true });
+    }
+
     cloneSpinner.succeed("Template cloned");
   } catch (error) {
     cloneSpinner.fail("Failed to clone template");
@@ -224,39 +252,31 @@ export async function scaffold(config: ProjectConfig): Promise<boolean> {
   const brandSpinner = ora("Customizing project...").start();
 
   try {
-    // Replace package scope in all package.json files
-    replaceInAllFiles(targetDir, /package\.json$/, "@keel", `@${config.projectName}`);
-
-    // Replace project name in config files
-    const configFiles = [
-      "package.json",
-      "packages/backend/package.json",
-      "packages/frontend/package.json",
-      "packages/shared/package.json",
-      "packages/transactional/package.json",
-      "docker-compose.yml",
-      "docker-compose.prod.yml",
-      "fly.toml",
-    ];
-
-    for (const file of configFiles) {
-      replaceInFile(join(targetDir, file), "keel", config.projectName);
-    }
-
-    // Update Capacitor config
-    const capConfigPath = join(targetDir, "packages/frontend/capacitor.config.ts");
-    if (existsSync(capConfigPath)) {
-      replaceInFile(capConfigPath, "com.keel.app", config.appId);
-      replaceInFile(capConfigPath, "keel", config.displayName);
-    }
-
-    // Update the root package.json name and description
+    // Only update the root package.json name and description.
+    // The @keel/* workspace package names are internal references and must NOT
+    // be renamed — they are never published, just used for workspace linking.
     const rootPkgPath = join(targetDir, "package.json");
     if (existsSync(rootPkgPath)) {
       const rootPkg = JSON.parse(readFileSync(rootPkgPath, "utf-8"));
       rootPkg.name = config.projectName;
       rootPkg.description = config.description;
       writeFileSync(rootPkgPath, JSON.stringify(rootPkg, null, 2) + "\n", "utf-8");
+    }
+
+    // Update docker-compose database name
+    replaceInFile(join(targetDir, "docker-compose.yml"), "POSTGRES_DB: keel", `POSTGRES_DB: ${config.projectName}`);
+
+    // Update Capacitor config
+    const capConfigPath = join(targetDir, "packages/frontend/capacitor.config.ts");
+    if (existsSync(capConfigPath)) {
+      replaceInFile(capConfigPath, "com.keel.app", config.appId);
+      replaceInFile(capConfigPath, "appName: \"Keel\"", `appName: "${config.displayName}"`);
+    }
+
+    // Update frontend app name in .env
+    const frontendEnvPath = join(targetDir, "packages/frontend/.env");
+    if (existsSync(frontendEnvPath)) {
+      replaceInFile(frontendEnvPath, "VITE_APP_NAME=Keel", `VITE_APP_NAME=${config.displayName}`);
     }
 
     brandSpinner.succeed("Project customized");

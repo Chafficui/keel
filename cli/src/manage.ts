@@ -326,15 +326,17 @@ function printUsage(): void {
   console.log(chalk.bold("  keel") + chalk.gray(" — sail management tool (a codai project)"));
   console.log();
   console.log("  Usage:");
+  console.log(`    ${chalk.cyan("keel create <name>")}       Create a new keel project`);
   console.log(`    ${chalk.cyan("keel sail add <sail>")}     Install a sail into the current project`);
   console.log(`    ${chalk.cyan("keel list")}                List available sails`);
   console.log(`    ${chalk.cyan("keel info <sail>")}         Show sail details`);
   console.log();
   console.log("  Examples:");
-  console.log(chalk.gray("    npx keel sail add google-oauth"));
-  console.log(chalk.gray("    npx keel sail add stripe"));
-  console.log(chalk.gray("    npx keel list"));
-  console.log(chalk.gray("    npx keel info stripe"));
+  console.log(chalk.gray("    npx @chafficui/keel create my-app"));
+  console.log(chalk.gray("    npx @chafficui/keel sail add google-oauth"));
+  console.log(chalk.gray("    npx @chafficui/keel sail add stripe"));
+  console.log(chalk.gray("    npx @chafficui/keel list"));
+  console.log(chalk.gray("    npx @chafficui/keel info stripe"));
   console.log();
 }
 
@@ -385,6 +387,13 @@ async function main(): Promise<void> {
       }
       commandInfo(target);
       break;
+
+    case "create": {
+      // Forward to the create CLI
+      const { main: createMain } = await import("./create-runner.js");
+      await createMain(args.slice(1));
+      break;
+    }
 
     default:
       printUsage();
