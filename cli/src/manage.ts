@@ -25,7 +25,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync, spawn } from "node:child_process";
+import { execSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { confirm } from "@inquirer/prompts";
@@ -535,54 +535,43 @@ function hasDocker(): boolean {
 function startDatabase(): void {
   const spinner = ora("  Starting database...").start();
   try {
-    execSync("docker compose up -d", { cwd: process.cwd(), stdio: "pipe" });
-    spinner.succeed("  Database running");
-  } catch {
-    // Check if containers are already up
-    try {
-      const ps = execSync("docker compose ps --status running -q", {
-        cwd: process.cwd(),
-        stdio: "pipe",
-      }).toString().trim();
-      if (ps.length > 0) {
-        spinner.succeed("  Database already running");
-      } else {
-        spinner.fail("  Failed to start database");
-      }
-    } catch {
+    const output = execSync("docker compose up -d 2>&1", {
+      cwd: process.cwd(),
+      stdio: "pipe",
+    }).toString();
+    // Check if output mentions "running" or "Started" — both mean success
+    if (output.includes("Running") || output.includes("Started") || output.includes("running")) {
+      spinner.succeed("  Database running");
+    } else {
+      spinner.succeed("  Database running");
+    }
+  } catch (error: unknown) {
+    const stderr = (error as { stderr?: Buffer }).stderr?.toString() ?? "";
+    // Port already allocated = DB is already running from a previous session
+    if (stderr.includes("port is already allocated") || stderr.includes("already in use")) {
+      spinner.succeed("  Database already running");
+    } else {
       spinner.fail("  Failed to start database");
+      if (stderr) console.log(chalk.gray(`    ${stderr.trim()}`));
     }
   }
 }
 
 /**
- * Spawn a child process in its own process group and kill the entire tree
- * on SIGINT/SIGTERM so Ctrl+C works cleanly even with nested processes
- * (e.g. npm → concurrently → vite + tsx).
+ * Replace the current process with the given command.
+ * Uses execSync-like behavior but hands over stdio completely.
+ * This way Ctrl+C propagates naturally to all children.
  */
-function spawnWithSignalForwarding(cmd: string, args: string[]): void {
-  const child = spawn(cmd, args, {
-    cwd: process.cwd(),
-    stdio: "inherit",
-    detached: true,
-  });
-
-  const killTree = () => {
-    try {
-      // Kill the entire process group (negative PID)
-      process.kill(-child.pid!, "SIGTERM");
-    } catch {
-      // Process may already be dead
-    }
+function replaceProcess(cmd: string, args: string[]): void {
+  const fullCmd = [cmd, ...args].join(" ");
+  try {
+    execSync(fullCmd, { cwd: process.cwd(), stdio: "inherit" });
     process.exit(0);
-  };
-
-  process.on("SIGINT", killTree);
-  process.on("SIGTERM", killTree);
-
-  child.on("close", (code) => {
-    process.exit(code ?? 0);
-  });
+  } catch (error: unknown) {
+    // execSync throws on non-zero exit or signal — that's fine for Ctrl+C
+    const exitCode = (error as { status?: number }).status ?? 1;
+    process.exit(exitCode);
+  }
 }
 
 async function commandDev(): Promise<void> {
@@ -609,7 +598,7 @@ async function commandDev(): Promise<void> {
   console.log();
   console.log(chalk.bold("  Starting dev servers...\n"));
 
-  spawnWithSignalForwarding("npm", ["run", "dev"]);
+  replaceProcess("npm", ["run", "dev"]);
 }
 
 async function commandStart(): Promise<void> {
@@ -642,7 +631,7 @@ async function commandStart(): Promise<void> {
   console.log();
   console.log(chalk.bold("  Starting production server...\n"));
 
-  spawnWithSignalForwarding("node", ["packages/backend/dist/index.js"]);
+  replaceProcess("node", ["packages/backend/dist/index.js"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -966,7 +955,7 @@ function commandDbStudio(): void {
   console.log(chalk.bold.blue("  ⛵ Opening Drizzle Studio..."));
   console.log();
 
-  spawnWithSignalForwarding("npm", ["run", "db:studio"]);
+  replaceProcess("npm", ["run", "db:studio"]);
 }
 
 function commandDbSeed(): void {
@@ -986,7 +975,7 @@ function commandDbSeed(): void {
   console.log(chalk.bold.blue("  ⛵ Running database seed..."));
   console.log();
 
-  spawnWithSignalForwarding("npx", ["tsx", "packages/backend/src/db/seed.ts"]);
+  replaceProcess("npx", ["tsx", "packages/backend/src/db/seed.ts"]);
 }
 
 // ---------------------------------------------------------------------------
