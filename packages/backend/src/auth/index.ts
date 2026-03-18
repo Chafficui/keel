@@ -41,6 +41,9 @@ const authConfig: BetterAuthOptions = {
   },
   baseURL: env.BACKEND_URL,
   trustedOrigins: [env.FRONTEND_URL],
+  socialProviders: {
+    // [SAIL_SOCIAL_PROVIDERS]
+  },
 };
 
 export const auth = betterAuth(authConfig);

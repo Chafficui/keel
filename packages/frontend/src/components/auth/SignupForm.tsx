@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
+// [SAIL_IMPORTS]
 
 export default function SignupForm() {
   const [name, setName] = useState("");
@@ -191,6 +192,8 @@ export default function SignupForm() {
             )}
           </button>
         </form>
+
+            {/* [SAIL_SOCIAL_BUTTONS] */}
 
         <p className="mt-6 text-center text-sm text-keel-gray-400">
           Already have an account?{" "}
