@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "npm install && npm run build:shared && npm run build:email && npm run build -w packages/backend"
+    "buildCommand": "npm install && npm run build:shared && npm run build:email && npm run build -w packages/backend && npm run db:migrate -w packages/backend"
   },
   "deploy": {
     "startCommand": "node packages/backend/dist/index.js",
