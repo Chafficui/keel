@@ -19,7 +19,7 @@ export default function PasswordResetForm() {
     setIsSubmitting(true);
 
     try {
-      await authClient.forgetPassword({ email, redirectTo: "/reset-password" });
+      await authClient.requestPasswordReset({ email, redirectTo: "/reset-password" });
       setSuccess(true);
     } catch (err) {
       setError(

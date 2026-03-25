@@ -2,7 +2,9 @@
   "name": "keel",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.0.0" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "workspaces": [
     "packages/shared",
     "packages/email",
@@ -25,10 +27,15 @@
     "db:studio": "npm run db:studio -w packages/backend",
     "cap:sync": "npm run cap:sync -w packages/frontend",
     "cap:ios": "npm run cap:ios -w packages/frontend",
-    "cap:android": "npm run cap:android -w packages/frontend"
+    "cap:android": "npm run cap:android -w packages/frontend",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.1",
     "concurrently": "^9.1.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.1"
   }
 }

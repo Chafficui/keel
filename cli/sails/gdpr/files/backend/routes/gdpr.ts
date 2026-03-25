@@ -1,8 +1,11 @@
 import { Router, type Request, type Response } from "express";
-import { consentInputSchema } from "@keel/shared";
+import { eq, and } from "drizzle-orm";
+import { verifyPassword } from "better-auth/crypto";
+import { consentInputSchema, CONSENT_TYPES } from "@keel/shared";
 import { requireAuth } from "../middleware/auth.js";
 import { env } from "../env.js";
-import { auth } from "../auth/index.js";
+import { db } from "../db/index.js";
+import { accounts } from "../db/schema/index.js";
 import {
   exportUserData,
   requestDeletion,
@@ -63,13 +66,26 @@ router.delete("/account", async (req: Request, res: Response) => {
     return;
   }
 
-  // Verify password using better-auth's built-in verification
-  const ctx = await auth.api.signInEmail({
-    body: { email: req.user!.email, password },
-    asResponse: false,
-  }).catch(() => null);
+  // Look up the credential account and verify the password hash directly
+  // (avoids creating a new session just to check the password)
+  const account = await db.query.accounts.findFirst({
+    where: and(
+      eq(accounts.userId, req.user!.id),
+      eq(accounts.providerId, "credential"),
+    ),
+  });
 
-  if (!ctx) {
+  if (!account?.password) {
+    res.status(401).json({ error: "Invalid password" });
+    return;
+  }
+
+  const valid = await verifyPassword({
+    hash: account.password,
+    password,
+  });
+
+  if (!valid) {
     res.status(401).json({ error: "Invalid password" });
     return;
   }
@@ -108,8 +124,8 @@ router.post("/consents", async (req: Request, res: Response) => {
 router.delete("/consents/:consentType", async (req: Request, res: Response) => {
   const { consentType } = req.params;
 
-  if (!consentType) {
-    res.status(400).json({ error: "consentType is required" });
+  if (!consentType || !(CONSENT_TYPES as readonly string[]).includes(consentType)) {
+    res.status(400).json({ error: `Invalid consentType. Allowed values: ${CONSENT_TYPES.join(", ")}` });
     return;
   }
 

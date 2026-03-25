@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router";
-import { apiPost } from "@/lib/api";
+import { authClient } from "@/lib/auth-client";
 
 type VerificationStatus = "loading" | "success" | "error";
 
@@ -22,7 +22,7 @@ export default function EmailVerification() {
 
     async function verify() {
       try {
-        await apiPost("/api/auth/verify-email", { token });
+        await authClient.verifyEmail({ query: { token: token! } });
         if (!cancelled) {
           setStatus("success");
           setTimeout(() => {

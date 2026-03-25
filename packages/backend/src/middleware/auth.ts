@@ -47,9 +47,11 @@ export async function requireAuth(
       headers.set("cookie", req.headers.cookie);
     }
 
-    // Forward other relevant headers
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (typeof value === "string" && !headers.has(key)) {
+    // Forward only specific needed headers
+    const allowedHeaders = ["x-platform", "user-agent", "origin", "referer"] as const;
+    for (const key of allowedHeaders) {
+      const value = req.headers[key];
+      if (typeof value === "string") {
         headers.set(key, value);
       }
     }

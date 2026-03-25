@@ -20,13 +20,13 @@ interface ConsentChange {
 interface ConsentUpdatedEmailProps {
   userName: string;
   changes: ConsentChange[];
+  baseUrl?: string;
 }
-
-const baseUrl = process.env["FRONTEND_URL"] || "http://localhost:5173";
 
 export function ConsentUpdatedEmail({
   userName,
   changes,
+  baseUrl = "http://localhost:5173",
 }: ConsentUpdatedEmailProps) {
   return (
     <Html>
@@ -107,6 +107,7 @@ ConsentUpdatedEmail.PreviewProps = {
     { type: "Marketing emails", action: "revoked" },
     { type: "Analytics", action: "granted" },
   ],
+  baseUrl: "http://localhost:5173",
 } satisfies ConsentUpdatedEmailProps;
 
 export default ConsentUpdatedEmail;

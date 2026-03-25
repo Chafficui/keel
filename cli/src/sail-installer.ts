@@ -94,17 +94,52 @@ export function getManualSteps(): string[] {
  * If the marker is missing (user modified the file), the insertion is skipped
  * and a manual step is recorded with the exact code the user needs to add.
  */
+/**
+ * Find a marker in file content using whitespace-tolerant matching.
+ *
+ * Handles variations like:
+ *   // [SAIL_IMPORTS]
+ *   //  [SAIL_IMPORTS]
+ *   //[SAIL_IMPORTS]
+ *   {/* [SAIL_IMPORTS] * /}   (JSX)
+ *
+ * Returns the exact string found in the file, or null if not present.
+ */
+function findMarker(content: string, marker: string): string | null {
+  // First try an exact match
+  if (content.includes(marker)) {
+    return marker;
+  }
+
+  // Extract the marker name (e.g. "SAIL_IMPORTS" from "// [SAIL_IMPORTS]")
+  const markerNameMatch = marker.match(/\[(\w+)\]/);
+  if (!markerNameMatch) {
+    return null;
+  }
+  const markerName = markerNameMatch[1];
+
+  // Build a flexible regex that tolerates whitespace differences
+  // Matches both JS comments (// [NAME]) and JSX comments ({/* [NAME] */})
+  const flexiblePattern = new RegExp(
+    `(?:\\/\\/\\s*\\[${markerName}\\]|\\{\\s*\\/\\*\\s*\\[${markerName}\\]\\s*\\*\\/\\s*\\})`,
+  );
+  const match = content.match(flexiblePattern);
+  return match ? match[0] : null;
+}
+
 export function insertAtMarker(
   filePath: string,
   marker: string,
   code: string
 ): boolean {
+  const relativePath = filePath.replace(process.cwd() + "/", "");
+
   if (!existsSync(filePath)) {
     console.log(
-      chalk.yellow(`    ⚠ File not found: ${filePath}`)
+      chalk.yellow(`    ⚠ File not found: ${relativePath}`)
     );
     manualSteps.push(
-      `Create file ${filePath} and add:\n${chalk.cyan(code)}`
+      `Create file ${chalk.bold(relativePath)} and add the following code:\n\n${chalk.cyan(code)}\n`
     );
     return false;
   }
@@ -116,19 +151,24 @@ export function insertAtMarker(
     return true;
   }
 
-  if (!content.includes(marker)) {
-    // Marker was removed by user — record manual step
-    const relativePath = filePath.replace(process.cwd() + "/", "");
+  // Use whitespace-tolerant marker matching
+  const foundMarker = findMarker(content, marker);
+
+  if (!foundMarker) {
+    // Marker was removed or reformatted beyond recognition
     console.log(
       chalk.yellow(`    ⚠ Marker "${marker}" not found in ${relativePath} — skipping auto-insert`)
     );
+    console.log(
+      chalk.gray(`      The marker may have been removed or reformatted.`)
+    );
     manualSteps.push(
-      `In ${chalk.bold(relativePath)}, add the following code:\n\n${chalk.cyan(code)}\n`
+      `In ${chalk.bold(relativePath)}, add the following code (near where the marker "${marker}" would be):\n\n${chalk.cyan(code)}\n`
     );
     return false;
   }
 
-  content = content.replace(marker, `${marker}\n${code}`);
+  content = content.replace(foundMarker, `${foundMarker}\n${code}`);
   writeFileSync(filePath, content, "utf-8");
   return true;
 }
@@ -209,8 +249,8 @@ function installGoogleOAuth(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  GOOGLE_CLIENT_ID: z.string().default(""),
-  GOOGLE_CLIENT_SECRET: z.string().default(""),`
+    `  GOOGLE_CLIENT_ID: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "GOOGLE_CLIENT_ID is required in production").default(""),
+  GOOGLE_CLIENT_SECRET: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "GOOGLE_CLIENT_SECRET is required in production").default(""),`
   );
 
   // Modify login and signup forms
@@ -285,9 +325,9 @@ function installPushNotifications(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  FIREBASE_PROJECT_ID: z.string().default(""),
-  FIREBASE_PRIVATE_KEY: z.string().default(""),
-  FIREBASE_CLIENT_EMAIL: z.string().default(""),`
+    `  FIREBASE_PROJECT_ID: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "FIREBASE_PROJECT_ID is required in production").default(""),
+  FIREBASE_PRIVATE_KEY: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "FIREBASE_PRIVATE_KEY is required in production").default(""),
+  FIREBASE_CLIENT_EMAIL: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "FIREBASE_CLIENT_EMAIL is required in production").default(""),`
   );
 
   // Modify Layout.tsx to include PushNotificationInit
@@ -434,13 +474,27 @@ function installStripe(sailDir: string, projectDir: string): void {
     'app.use("/api/stripe", stripeRouter);'
   );
 
+  // Stripe webhook needs the raw body — insert express.raw() BEFORE express.json()
+  const indexPath = join(backendDir, "src/index.ts");
+  if (existsSync(indexPath)) {
+    let indexContent = readFileSync(indexPath, "utf-8");
+    const rawMiddleware = 'app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));';
+    if (!indexContent.includes(rawMiddleware)) {
+      indexContent = indexContent.replace(
+        "app.use(express.json());",
+        `// Raw body for Stripe webhook signature verification (must be before express.json())\n${rawMiddleware}\n\napp.use(express.json());`,
+      );
+      writeFileSync(indexPath, indexContent, "utf-8");
+    }
+  }
+
   // Add env var validation
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  STRIPE_SECRET_KEY: z.string().default(""),
-  STRIPE_PUBLISHABLE_KEY: z.string().default(""),
-  STRIPE_WEBHOOK_SECRET: z.string().default(""),`
+    `  STRIPE_SECRET_KEY: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "STRIPE_SECRET_KEY is required in production").default(""),
+  STRIPE_PUBLISHABLE_KEY: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "STRIPE_PUBLISHABLE_KEY is required in production").default(""),
+  STRIPE_WEBHOOK_SECRET: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "STRIPE_WEBHOOK_SECRET is required in production").default(""),`
   );
 
   // Modify frontend router
@@ -537,7 +591,7 @@ function installAdminDashboard(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    '  ADMIN_EMAILS: z.string().default(""),'
+    '  ADMIN_EMAILS: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "ADMIN_EMAILS is required in production").default(""),'
   );
 
   // Add frontend routes
@@ -740,7 +794,7 @@ export const deletionRequestsRelations = relations(deletionRequests, ({ one }) =
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    '  DELETION_CRON_SECRET: z.string().default("dev-cron-secret"),'
+    '  DELETION_CRON_SECRET: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "DELETION_CRON_SECRET is required in production").default("dev-cron-secret"),'
   );
 
   // Add privacy policy route to frontend router
@@ -931,11 +985,11 @@ function installR2Storage(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  R2_ACCOUNT_ID: z.string().default(""),
-  R2_ACCESS_KEY_ID: z.string().default(""),
-  R2_SECRET_ACCESS_KEY: z.string().default(""),
+    `  R2_ACCOUNT_ID: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "R2_ACCOUNT_ID is required in production").default(""),
+  R2_ACCESS_KEY_ID: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "R2_ACCESS_KEY_ID is required in production").default(""),
+  R2_SECRET_ACCESS_KEY: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "R2_SECRET_ACCESS_KEY is required in production").default(""),
   R2_BUCKET_NAME: z.string().default("avatars"),
-  R2_PUBLIC_URL: z.string().default(""),`
+  R2_PUBLIC_URL: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "R2_PUBLIC_URL is required in production").default(""),`
   );
 
   // Add avatar routes to profile.ts
@@ -1088,11 +1142,11 @@ function installFileUploads(sailDir: string, projectDir: string): void {
   insertAtMarker(
     join(backendDir, "src/env.ts"),
     "// [SAIL_ENV_VARS]",
-    `  S3_ENDPOINT: z.string().default(""),
-  S3_ACCESS_KEY_ID: z.string().default(""),
-  S3_SECRET_ACCESS_KEY: z.string().default(""),
+    `  S3_ENDPOINT: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "S3_ENDPOINT is required in production").default(""),
+  S3_ACCESS_KEY_ID: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "S3_ACCESS_KEY_ID is required in production").default(""),
+  S3_SECRET_ACCESS_KEY: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "S3_SECRET_ACCESS_KEY is required in production").default(""),
   S3_BUCKET_NAME: z.string().default("uploads"),
-  S3_PUBLIC_URL: z.string().default(""),
+  S3_PUBLIC_URL: z.string().min(process.env.NODE_ENV === "production" ? 1 : 0, "S3_PUBLIC_URL is required in production").default(""),
   S3_REGION: z.string().default("auto"),`
   );
 
@@ -1218,6 +1272,9 @@ export async function installSailByName(
  * Used during project creation (the create.ts entry point).
  */
 export async function installSails(config: ProjectConfig): Promise<void> {
+  // Clear any leftover manual steps from previous calls
+  manualSteps.length = 0;
+
   const projectDir = resolve(process.cwd(), config.projectName);
   const bundledSailsDir = getBundledSailsDir();
 

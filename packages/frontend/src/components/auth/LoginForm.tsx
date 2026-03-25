@@ -11,7 +11,11 @@ export default function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl") || "/";
+  const rawReturnUrl = searchParams.get("returnUrl") || "/";
+  // Prevent open redirect: only allow relative paths
+  const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//")
+    ? rawReturnUrl
+    : "/";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

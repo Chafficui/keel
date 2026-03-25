@@ -44,10 +44,9 @@ const authConfig: BetterAuthOptions = {
   baseURL: env.BACKEND_URL,
   trustedOrigins: [env.FRONTEND_URL],
   advanced: {
-    defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
-    },
+    defaultCookieAttributes: env.ENABLE_CAPACITOR
+      ? { sameSite: "none" as const, secure: true }
+      : { sameSite: "lax" as const, secure: env.NODE_ENV === "production" },
   },
   socialProviders: {
     // [SAIL_SOCIAL_PROVIDERS]

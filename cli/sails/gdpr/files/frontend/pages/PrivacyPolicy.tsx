@@ -174,9 +174,9 @@ export default function PrivacyPolicy() {
               exercise your rights, please contact us at:
             </p>
             <p className="mt-2 text-sm text-keel-gray-400">
-              <strong className="text-keel-gray-100">Email:</strong> privacy@keel.com
+              <strong className="text-keel-gray-100">Email:</strong> privacy@yourdomain.com
               <br />
-              <strong className="text-keel-gray-100">Data Protection Officer:</strong> dpo@keel.com
+              <strong className="text-keel-gray-100">Data Protection Officer:</strong> dpo@yourdomain.com
             </p>
           </div>
         </section>

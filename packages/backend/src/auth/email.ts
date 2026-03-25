@@ -10,6 +10,12 @@ import {
   ConsentUpdatedEmail,
 } from "@keel/email";
 import { sendEmail } from "../services/email.js";
+import { env } from "../env.js";
+
+/** Resolve the frontend base URL at runtime from environment config. */
+function getBaseUrl(): string {
+  return env.FRONTEND_URL;
+}
 
 export async function sendVerificationEmail(
   email: string,
@@ -23,7 +29,7 @@ export async function sendWelcomeEmail(
   email: string,
   name: string,
 ): Promise<void> {
-  const html = await render(WelcomeEmail({ userName: name }));
+  const html = await render(WelcomeEmail({ userName: name, baseUrl: getBaseUrl() }));
   await sendEmail({ to: email, subject: "Welcome to Keel!", html });
 }
 
@@ -51,7 +57,7 @@ export async function sendDeletionCompletedEmail(
   email: string,
   userName: string,
 ): Promise<void> {
-  const html = await render(AccountDeletionCompletedEmail({ userName }));
+  const html = await render(AccountDeletionCompletedEmail({ userName, baseUrl: getBaseUrl() }));
   await sendEmail({ to: email, subject: "Your account has been deleted", html });
 }
 
@@ -83,6 +89,6 @@ export async function sendConsentUpdatedEmail(
   userName: string,
   changes: Array<{ type: string; action: "granted" | "revoked" }>,
 ): Promise<void> {
-  const html = await render(ConsentUpdatedEmail({ userName, changes }));
+  const html = await render(ConsentUpdatedEmail({ userName, changes, baseUrl: getBaseUrl() }));
   await sendEmail({ to: email, subject: "Your privacy preferences have been updated", html });
 }

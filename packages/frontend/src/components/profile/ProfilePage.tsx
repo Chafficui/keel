@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiPatch } from "@/lib/api";
 
@@ -10,6 +10,10 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    if (user?.name) setName(user.name);
+  }, [user?.name]);
+
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -17,7 +21,7 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      await apiPatch("/api/user/profile", { name });
+      await apiPatch("/api/profile", { name });
       setSuccess("Profile updated successfully.");
       setIsEditing(false);
     } catch (err) {

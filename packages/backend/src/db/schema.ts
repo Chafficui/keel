@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ============================================================================
@@ -26,7 +26,10 @@ export const sessions = pgTable("sessions", {
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("sessions_user_id_idx").on(table.userId),
+  index("sessions_expires_at_idx").on(table.expiresAt),
+]);
 
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),

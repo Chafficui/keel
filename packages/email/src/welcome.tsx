@@ -14,11 +14,10 @@ import type * as React from "react";
 
 interface WelcomeEmailProps {
   userName: string;
+  baseUrl?: string;
 }
 
-const baseUrl = process.env["FRONTEND_URL"] || "http://localhost:5173";
-
-export function WelcomeEmail({ userName }: WelcomeEmailProps) {
+export function WelcomeEmail({ userName, baseUrl = "http://localhost:5173" }: WelcomeEmailProps) {
   return (
     <Html>
       <Head />
@@ -68,6 +67,7 @@ export function WelcomeEmail({ userName }: WelcomeEmailProps) {
 
 WelcomeEmail.PreviewProps = {
   userName: "Felix",
+  baseUrl: "http://localhost:5173",
 } satisfies WelcomeEmailProps;
 
 export default WelcomeEmail;

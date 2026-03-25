@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, index } from "drizzle-orm/pg-core";
 import { users } from "./auth.js";
 
 export const deletionRequests = pgTable("deletion_requests", {
@@ -14,4 +14,7 @@ export const deletionRequests = pgTable("deletion_requests", {
   scheduledDeletionAt: timestamp("scheduled_deletion_at").notNull(),
   cancelledAt: timestamp("cancelled_at"),
   completedAt: timestamp("completed_at"),
-});
+}, (table) => [
+  index("deletion_requests_user_id_idx").on(table.userId),
+  index("deletion_requests_scheduled_at_idx").on(table.userId, table.scheduledDeletionAt),
+]);

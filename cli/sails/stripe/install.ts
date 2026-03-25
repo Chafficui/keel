@@ -280,6 +280,22 @@ async function main(): Promise<void> {
   insertAtMarker(join(BACKEND_ROOT, "src/db/schema/index.ts"), "// [SAIL_SCHEMA]", 'export * from "./stripe";');
   insertAtMarker(join(BACKEND_ROOT, "src/index.ts"), "// [SAIL_IMPORTS]", 'import { stripeRouter } from "./routes/stripe";');
   insertAtMarker(join(BACKEND_ROOT, "src/index.ts"), "// [SAIL_ROUTES]", 'app.use("/api/stripe", stripeRouter);');
+
+  // Stripe webhook needs the raw body — insert express.raw() BEFORE express.json()
+  const indexPath = join(BACKEND_ROOT, "src/index.ts");
+  if (existsSync(indexPath)) {
+    let indexContent = readFileSync(indexPath, "utf-8");
+    const rawMiddleware = 'app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));';
+    if (!indexContent.includes(rawMiddleware)) {
+      indexContent = indexContent.replace(
+        "app.use(express.json());",
+        `// Raw body for Stripe webhook signature verification (must be before express.json())\n${rawMiddleware}\n\napp.use(express.json());`,
+      );
+      writeFileSync(indexPath, indexContent, "utf-8");
+      console.log("  Modified -> src/index.ts (added raw body middleware for webhook)");
+    }
+  }
+
   insertAtMarker(
     join(BACKEND_ROOT, "src/env.ts"),
     "// [SAIL_ENV_VARS]",

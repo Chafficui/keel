@@ -9,17 +9,23 @@ export function useDeepLinks() {
   useEffect(() => {
     if (!isNative) return;
 
+    const allowedDeepLinkPaths = [
+      "/verify-email",
+      "/reset-password",
+      "/login",
+      "/signup",
+    ];
+
     const handleUrlOpen = (event: URLOpenListenerEvent) => {
       try {
         const url = new URL(event.url);
         const path = url.pathname + url.search;
 
-        if (
-          path.startsWith("/verify-email") ||
-          path.startsWith("/reset-password")
-        ) {
-          navigate(path);
-        } else if (path !== "/") {
+        const isAllowed = allowedDeepLinkPaths.some((allowed) =>
+          path.startsWith(allowed),
+        );
+
+        if (isAllowed) {
           navigate(path);
         }
       } catch {
@@ -27,10 +33,14 @@ export function useDeepLinks() {
       }
     };
 
-    App.addListener("appUrlOpen", handleUrlOpen);
+    let handle: Awaited<ReturnType<typeof App.addListener>> | undefined;
+
+    App.addListener("appUrlOpen", handleUrlOpen).then((h) => {
+      handle = h;
+    });
 
     return () => {
-      App.removeAllListeners();
+      handle?.remove();
     };
   }, [navigate]);
 }

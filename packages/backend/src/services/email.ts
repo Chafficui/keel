@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { env } from "../env.js";
+import { logger } from "../lib/logger.js";
 
 export const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -12,15 +13,22 @@ export async function sendEmail(options: {
   html: string;
 }) {
   if (!resend) {
-    console.log(`\n📧 Email (dev mode — not sent):`);
-    console.log(`   To: ${options.to}`);
-    console.log(`   Subject: ${options.subject}`);
-    console.log(`   HTML: ${options.html.substring(0, 200)}...\n`);
+    logger.debug(
+      { to: options.to, subject: options.subject },
+      "Email not sent (dev mode, no RESEND_API_KEY)",
+    );
     return;
   }
 
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
-    ...options,
-  });
+  try {
+    await resend.emails.send({
+      from: env.EMAIL_FROM,
+      ...options,
+    });
+  } catch (error) {
+    logger.error(
+      { to: options.to, subject: options.subject, error },
+      "Failed to send email via Resend",
+    );
+  }
 }

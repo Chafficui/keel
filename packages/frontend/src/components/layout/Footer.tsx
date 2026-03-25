@@ -1,6 +1,6 @@
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const appName = import.meta.env.VITE_APP_NAME || "Keel";
+  const appName = import.meta.env['VITE_APP_NAME'] || "Keel";
 
   return (
     <footer className="border-t border-keel-gray-800 bg-keel-navy">

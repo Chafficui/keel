@@ -22,10 +22,15 @@ router.get("/users", async (req: Request, res: Response) => {
     const search = (req.query.search as string) || "";
     const offset = (page - 1) * limit;
 
-    const whereClause = search
+    // Escape LIKE metacharacters to prevent SQL injection via pattern matching
+    const escapedSearch = search
+      .replace(/%/g, "\\%")
+      .replace(/_/g, "\\_");
+
+    const whereClause = escapedSearch
       ? or(
-          like(users.email, `%${search}%`),
-          like(users.name, `%${search}%`),
+          like(users.email, `%${escapedSearch}%`),
+          like(users.name, `%${escapedSearch}%`),
         )
       : undefined;
 

@@ -23,6 +23,12 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().default(""),
   EMAIL_FROM: z.string().default("noreply@localhost"),
 
+  // Mobile (Capacitor) — set to "true" to allow Capacitor origins in CORS
+  ENABLE_CAPACITOR: z
+    .string()
+    .transform((v) => v === "true")
+    .default("false"),
+
   // [SAIL_ENV_VARS]
 });
 
@@ -36,6 +42,25 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+// Block startup in production if BETTER_AUTH_SECRET is insecure
+if (env.NODE_ENV === "production") {
+  const secret = env.BETTER_AUTH_SECRET;
+  if (secret === "dev-secret-change-me-in-production") {
+    console.error(
+      "FATAL: BETTER_AUTH_SECRET is set to the default dev value. " +
+        "Set a unique, random secret (at least 32 characters) before running in production.",
+    );
+    process.exit(1);
+  }
+  if (secret.length < 32) {
+    console.error(
+      "FATAL: BETTER_AUTH_SECRET must be at least 32 characters long in production. " +
+        `Current length: ${secret.length}`,
+    );
+    process.exit(1);
+  }
+}
 
 // Warn about missing services in development
 if (env.NODE_ENV === "development") {

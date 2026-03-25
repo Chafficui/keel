@@ -1,5 +1,6 @@
 import { eq, and, isNull, lte } from "drizzle-orm";
 import { db } from "../db/index.js";
+import { env } from "../env.js";
 import {
   users,
   sessions,
@@ -62,6 +63,21 @@ export async function exportUserData(userId: string) {
 }
 
 export async function requestDeletion(userId: string, reason?: string) {
+  // Check for an existing pending deletion request
+  const [existing] = await db
+    .select()
+    .from(deletionRequests)
+    .where(
+      and(
+        eq(deletionRequests.userId, userId),
+        eq(deletionRequests.status, "pending"),
+      ),
+    );
+
+  if (existing) {
+    return existing;
+  }
+
   const scheduledDeletionAt = new Date();
   scheduledDeletionAt.setDate(scheduledDeletionAt.getDate() + 30);
 
@@ -82,7 +98,7 @@ export async function requestDeletion(userId: string, reason?: string) {
       month: "long",
       day: "numeric",
     });
-    const cancelUrl = `https://keel.com/settings/cancel-deletion?requestId=${request.id}`;
+    const cancelUrl = `${env.FRONTEND_URL}/settings/cancel-deletion?requestId=${request.id}`;
     await sendDeletionRequestedEmail(
       user.email,
       user.name,
@@ -117,7 +133,7 @@ export async function cancelDeletion(userId: string) {
     await sendDeletionCancelledEmail(
       user.email,
       user.name,
-      "https://keel.com/dashboard",
+      `${env.FRONTEND_URL}/dashboard`,
     );
   }
 

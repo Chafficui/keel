@@ -14,12 +14,12 @@ import type * as React from "react";
 
 interface AccountDeletionCompletedEmailProps {
   userName: string;
+  baseUrl?: string;
 }
-
-const baseUrl = process.env["FRONTEND_URL"] || "http://localhost:5173";
 
 export function AccountDeletionCompletedEmail({
   userName,
+  baseUrl = "http://localhost:5173",
 }: AccountDeletionCompletedEmailProps) {
   return (
     <Html>
@@ -84,6 +84,7 @@ export function AccountDeletionCompletedEmail({
 
 AccountDeletionCompletedEmail.PreviewProps = {
   userName: "Felix",
+  baseUrl: "http://localhost:5173",
 } satisfies AccountDeletionCompletedEmailProps;
 
 export default AccountDeletionCompletedEmail;

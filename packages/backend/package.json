@@ -11,17 +11,21 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@keel/shared": "*",
     "@keel/email": "*",
+    "@keel/shared": "*",
     "@react-email/render": "^1.0.0",
     "better-auth": "^1.2.0",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
     "helmet": "^8.0.0",
+    "pino": "^9.6.0",
     "postgres": "^3.4.0",
     "resend": "^4.5.0",
     "zod": "^3.24.0"
@@ -30,8 +34,11 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.1.1",
     "drizzle-kit": "^0.30.0",
+    "pino-pretty": "^13.0.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.1"
   }
 }

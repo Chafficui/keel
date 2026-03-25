@@ -25,7 +25,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync, spawn } from "node:child_process";
+import { execSync, execFileSync, spawn } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { confirm } from "@inquirer/prompts";
@@ -55,6 +55,9 @@ interface RegistrySail {
   category: string;
   version: string;
   status?: string;
+  routes?: string[];
+  envVars?: string[];
+  conflicts?: string[];
 }
 
 interface Registry {
@@ -238,6 +241,68 @@ async function commandAdd(sailName: string): Promise<void> {
       chalk.yellow(`\n  Sail "${sailName}" is already installed.\n`)
     );
     process.exit(0);
+  }
+
+  // Check sail compatibility — warn about conflicts with installed sails
+  if (registryEntry.conflicts && registryEntry.conflicts.length > 0) {
+    const conflicting = registryEntry.conflicts.filter((c) =>
+      installed.installed.includes(c)
+    );
+    if (conflicting.length > 0) {
+      const conflictNames = conflicting
+        .map((c) => {
+          const entry = registry.sails.find((s) => s.name === c);
+          return entry ? entry.displayName : c;
+        })
+        .join(", ");
+      console.error(
+        chalk.red(`\n  Error: "${sailName}" conflicts with installed sail(s): ${conflictNames}`)
+      );
+      console.error(
+        chalk.gray(`  These sails modify the same areas and cannot be used together.`)
+      );
+      console.error(
+        chalk.gray(`  Remove the conflicting sail first with: keel sail remove <name>\n`)
+      );
+      process.exit(1);
+    }
+  }
+
+  // Check for route collisions with installed sails
+  if (registryEntry.routes && registryEntry.routes.length > 0) {
+    for (const installedSailName of installed.installed) {
+      const installedEntry = registry.sails.find((s) => s.name === installedSailName);
+      if (installedEntry?.routes) {
+        const overlapping = registryEntry.routes.filter((r) =>
+          installedEntry.routes!.includes(r)
+        );
+        if (overlapping.length > 0) {
+          console.log(
+            chalk.yellow(`\n  Warning: "${sailName}" adds route(s) ${overlapping.join(", ")} which overlap with "${installedSailName}".`)
+          );
+          console.log(
+            chalk.gray(`  You may need to resolve route conflicts manually.\n`)
+          );
+        }
+      }
+    }
+  }
+
+  // Check for env var collisions with installed sails
+  if (registryEntry.envVars && registryEntry.envVars.length > 0) {
+    for (const installedSailName of installed.installed) {
+      const installedEntry = registry.sails.find((s) => s.name === installedSailName);
+      if (installedEntry?.envVars) {
+        const overlapping = registryEntry.envVars.filter((e) =>
+          installedEntry.envVars!.includes(e)
+        );
+        if (overlapping.length > 0) {
+          console.log(
+            chalk.yellow(`\n  Warning: "${sailName}" uses env var(s) ${overlapping.join(", ")} which are also used by "${installedSailName}".`)
+          );
+        }
+      }
+    }
   }
 
   // Install the sail
@@ -560,22 +625,48 @@ function startDatabase(): void {
 /**
  * Replace the current process with the given command.
  * Uses spawn with inherited stdio so Ctrl+C / SIGINT propagates correctly.
+ * The child is spawned in a detached process group so that SIGTERM can
+ * reliably kill the entire tree (e.g. concurrently-managed dev servers).
  */
 function replaceProcess(cmd: string, args: string[]): void {
   const child = spawn(cmd, args, {
     cwd: process.cwd(),
     stdio: "inherit",
+    detached: true,
   });
 
-  // Ctrl+C: kill child and exit
+  // Prevent the parent ref from keeping Node alive after child exits
+  child.unref();
+
+  // Re-ref so we can wait for the close event
+  child.ref();
+
+  /**
+   * Kill the entire process group. Using -pid sends the signal to every
+   * process in the group, which covers forked dev servers, Vite, tsx, etc.
+   */
+  function killTree(signal: NodeJS.Signals): void {
+    if (child.pid) {
+      try {
+        process.kill(-child.pid, signal);
+      } catch {
+        // Process group may already be gone
+        child.kill(signal);
+      }
+    }
+  }
+
+  // Strip terminal escape sequences from child output is handled by
+  // inheriting stdio directly — no extra processing needed.
+
   process.on("SIGINT", () => {
-    child.kill("SIGINT");
-    // Give child a moment to clean up, then force exit
-    setTimeout(() => process.exit(0), 500);
+    killTree("SIGTERM");
+    // Give child processes a moment to clean up, then force exit
+    setTimeout(() => process.exit(0), 1000);
   });
   process.on("SIGTERM", () => {
-    child.kill("SIGTERM");
-    setTimeout(() => process.exit(0), 500);
+    killTree("SIGTERM");
+    setTimeout(() => process.exit(0), 1000);
   });
 
   child.on("close", (code) => {
@@ -690,12 +781,19 @@ async function commandDoctor(): Promise<void> {
   const envVars = loadEnvFile();
   if (envVars.DATABASE_URL) {
     try {
-      execSync(`node -e "const { Client } = require('pg'); const c = new Client('${envVars.DATABASE_URL}'); c.connect().then(() => { c.end(); process.exit(0); }).catch(() => process.exit(1))"`, { stdio: "pipe", timeout: 5000 });
+      execFileSync("node", [
+        "-e",
+        `const { Client } = require('pg'); const c = new Client(process.env.DATABASE_URL); c.connect().then(() => { c.end(); process.exit(0); }).catch(() => process.exit(1))`,
+      ], { stdio: "pipe", timeout: 5000, env: { ...process.env, DATABASE_URL: envVars.DATABASE_URL } });
       pass("PostgreSQL is reachable");
     } catch {
-      // Try a simpler check — see if psql is available
+      // Try a simpler check — see if psql is available via Docker
       try {
-        execSync(`docker exec -i $(docker ps -q --filter "ancestor=postgres" | head -1) pg_isready`, { stdio: "pipe", timeout: 5000 });
+        execFileSync("docker", [
+          "exec", "-i",
+          execFileSync("docker", ["ps", "-q", "--filter", "ancestor=postgres"], { stdio: "pipe", timeout: 5000 }).toString().trim().split("\n")[0],
+          "pg_isready",
+        ], { stdio: "pipe", timeout: 5000 });
         pass("PostgreSQL is reachable (via Docker)");
       } catch {
         warn("PostgreSQL — could not verify connection (DATABASE_URL is set)");
@@ -939,8 +1037,26 @@ async function commandDbReset(): Promise<void> {
       return;
     }
 
+    // Parse database name from DATABASE_URL in .env
+    let dbName = "keel";
+    try {
+      const envPath = join(process.cwd(), "packages", "backend", ".env");
+      if (existsSync(envPath)) {
+        const envContent = readFileSync(envPath, "utf-8");
+        const dbUrlMatch = envContent.match(/^DATABASE_URL\s*=\s*(.+)$/m);
+        if (dbUrlMatch) {
+          const dbUrl = dbUrlMatch[1].replace(/^["']|["']$/g, "");
+          const parsed = new URL(dbUrl);
+          const pathName = parsed.pathname.replace(/^\//, "");
+          if (pathName) dbName = pathName;
+        }
+      }
+    } catch {
+      // Fall back to default "keel" if parsing fails
+    }
+
     execSync(
-      `docker exec ${containerId} psql -U postgres -d keel -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"`,
+      `docker exec ${containerId} psql -U postgres -d ${dbName} -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"`,
       { stdio: "pipe" }
     );
     spinner.succeed("  Database schema reset");
