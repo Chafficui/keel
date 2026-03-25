@@ -25,28 +25,40 @@ sails/        — Installed sail extensions (see installed.json)
 - Shared package: `import { User } from "@keel/shared"`
 - Email package: `import { WelcomeEmail } from "@keel/email"`
 
+## Adding Features — ALWAYS use keel CLI
+
 ### Adding an API Route
-1. Create `packages/backend/src/routes/myroute.ts`
-2. Export a default Router
-3. Import and mount in `packages/backend/src/index.ts` (before `// [SAIL_ROUTES]`)
-4. Add request/response types to `packages/shared/src/types/`
-5. Add Zod validators to `packages/shared/src/validators/`
+```bash
+npx keel generate route myroute
+```
+This creates the route file AND auto-mounts it in index.ts. Ready at `/api/myroute`.
+Add request/response types to `packages/shared/src/types/` and Zod validators to `packages/shared/src/validators/` as needed.
 
 ### Adding a Frontend Page
-1. Create `packages/frontend/src/pages/MyPage.tsx`
-2. Add route in `packages/frontend/src/router.tsx`
-3. If protected, wrap with `<ProtectedRoute>`
-4. Use TailwindCSS classes from the theme (keel-navy, keel-blue, keel-gray-*)
+```bash
+npx keel generate page my-page
+```
+This creates the page component AND adds the route to router.tsx. Ready at `/my-page`.
+If the page should be protected, manually wrap with `<ProtectedRoute>` in router.tsx.
+
+### Adding an Email Template
+```bash
+npx keel generate email my-email
+```
+This creates the React Email template AND exports it from index.ts.
 
 ### Adding a Database Table
 1. Create schema in `packages/backend/src/db/schema/mytable.ts`
 2. Export from `packages/backend/src/db/schema/index.ts`
 3. Run `npm run db:generate` then `npm run db:migrate`
 
-### Adding an Email Template
-1. Create in `packages/email/src/my-email.tsx`
-2. Export from `packages/email/src/index.ts`
-3. Use in backend with `@react-email/render`
+### Installing a Sail (add-on)
+```bash
+npx keel sail add stripe
+npx keel sail add google-oauth
+npx keel list                    # see all available sails
+```
+Do NOT manually copy sail code. Always use the CLI.
 
 ## Auth
 - Protected routes use `requireAuth` middleware: `router.get("/", requireAuth, handler)`

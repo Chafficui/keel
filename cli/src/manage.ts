@@ -884,14 +884,41 @@ export default router;
 
   writeFileSync(filePath, content, "utf-8");
 
+  // Auto-mount the route in index.ts
+  const indexPath = join(process.cwd(), "packages", "backend", "src", "index.ts");
+  const importLine = `import ${name}Router from "./routes/${name}.js";`;
+  const mountLine = `app.use("/api/${name}", ${name}Router);`;
+  let autoMounted = false;
+
+  if (existsSync(indexPath)) {
+    let indexContent = readFileSync(indexPath, "utf-8");
+
+    // Add import after SAIL_IMPORTS marker
+    if (indexContent.includes("// [SAIL_IMPORTS]") && !indexContent.includes(importLine)) {
+      indexContent = indexContent.replace("// [SAIL_IMPORTS]", `// [SAIL_IMPORTS]\n${importLine}`);
+    }
+
+    // Add mount before SAIL_ROUTES marker
+    if (indexContent.includes("// [SAIL_ROUTES]") && !indexContent.includes(mountLine)) {
+      indexContent = indexContent.replace("// [SAIL_ROUTES]", `${mountLine}\n// [SAIL_ROUTES]`);
+    }
+
+    writeFileSync(indexPath, indexContent, "utf-8");
+    autoMounted = true;
+  }
+
   console.log();
   console.log(chalk.green(`  Created: packages/backend/src/routes/${name}.ts`));
-  console.log();
-  console.log(chalk.bold("  Next steps:"));
-  console.log(chalk.gray(`  Mount the route in packages/backend/src/index.ts:`));
-  console.log();
-  console.log(chalk.cyan(`    import ${name}Router from "./routes/${name}.js";`));
-  console.log(chalk.cyan(`    app.use("/api/${name}", ${name}Router);`));
+  if (autoMounted) {
+    console.log(chalk.green(`  Mounted: app.use("/api/${name}", ${name}Router) in index.ts`));
+    console.log();
+    console.log(chalk.gray(`  Ready at: /api/${name}`));
+  } else {
+    console.log();
+    console.log(chalk.yellow("  Could not auto-mount. Manually add to packages/backend/src/index.ts:"));
+    console.log(chalk.cyan(`    ${importLine}`));
+    console.log(chalk.cyan(`    ${mountLine}`));
+  }
   console.log();
 }
 
@@ -925,14 +952,50 @@ function commandGeneratePage(name: string): void {
 
   writeFileSync(filePath, content, "utf-8");
 
+  // Auto-add route to router.tsx
+  const routerPath = join(process.cwd(), "packages", "frontend", "src", "router.tsx");
+  const importLine = `import ${pascalName} from "./pages/${pascalName}";`;
+  const routeLine = `        <Route path="/${name}" element={<${pascalName} />} />`;
+  let autoRouted = false;
+
+  if (existsSync(routerPath)) {
+    let routerContent = readFileSync(routerPath, "utf-8");
+
+    // Add import if not already present
+    if (!routerContent.includes(importLine)) {
+      // Insert after the SAIL_IMPORTS marker (or after the last import if marker missing)
+      if (routerContent.includes("// [SAIL_IMPORTS]")) {
+        routerContent = routerContent.replace("// [SAIL_IMPORTS]", `// [SAIL_IMPORTS]\n${importLine}`);
+      } else {
+        const lastImportIdx = routerContent.lastIndexOf("import ");
+        const nextNewline = routerContent.indexOf("\n", lastImportIdx);
+        routerContent = routerContent.slice(0, nextNewline + 1) + importLine + "\n" + routerContent.slice(nextNewline + 1);
+      }
+    }
+
+    // Add route before SAIL_ROUTES marker
+    if (!routerContent.includes(`path="/${name}"`)) {
+      if (routerContent.includes("{/* [SAIL_ROUTES] */}")) {
+        routerContent = routerContent.replace("{/* [SAIL_ROUTES] */}", `${routeLine}\n        {/* [SAIL_ROUTES] */}`);
+      }
+    }
+
+    writeFileSync(routerPath, routerContent, "utf-8");
+    autoRouted = true;
+  }
+
   console.log();
   console.log(chalk.green(`  Created: packages/frontend/src/pages/${pascalName}.tsx`));
-  console.log();
-  console.log(chalk.bold("  Next steps:"));
-  console.log(chalk.gray(`  Add a route in packages/frontend/src/router.tsx:`));
-  console.log();
-  console.log(chalk.cyan(`    import ${pascalName} from "./pages/${pascalName}";`));
-  console.log(chalk.cyan(`    <Route path="/${name}" element={<${pascalName} />} />`));
+  if (autoRouted) {
+    console.log(chalk.green(`  Routed:  <Route path="/${name}" /> added to router.tsx`));
+    console.log();
+    console.log(chalk.gray(`  Ready at: /${name}`));
+  } else {
+    console.log();
+    console.log(chalk.yellow("  Could not auto-route. Manually add to packages/frontend/src/router.tsx:"));
+    console.log(chalk.cyan(`    ${importLine}`));
+    console.log(chalk.cyan(`    <Route path="/${name}" element={<${pascalName} />} />`));
+  }
   console.log();
 }
 
@@ -997,13 +1060,34 @@ export default function ${pascalName}Email({ name }: ${pascalName}EmailProps) {
 
   writeFileSync(filePath, content, "utf-8");
 
+  // Auto-export from email index
+  const emailIndexPath = join(process.cwd(), "packages", "email", "src", "index.ts");
+  const exportLine = `export { default as ${pascalName}Email } from "./${name}.js";`;
+  let autoExported = false;
+
+  if (existsSync(emailIndexPath)) {
+    let emailIndex = readFileSync(emailIndexPath, "utf-8");
+
+    if (!emailIndex.includes(exportLine)) {
+      // Ensure file ends with a newline before appending
+      if (!emailIndex.endsWith("\n")) {
+        emailIndex += "\n";
+      }
+      emailIndex += `${exportLine}\n`;
+      writeFileSync(emailIndexPath, emailIndex, "utf-8");
+      autoExported = true;
+    }
+  }
+
   console.log();
   console.log(chalk.green(`  Created: packages/email/src/${name}.tsx`));
-  console.log();
-  console.log(chalk.bold("  Next steps:"));
-  console.log(chalk.gray(`  Export from packages/email/src/index.ts:`));
-  console.log();
-  console.log(chalk.cyan(`    export { default as ${pascalName}Email } from "./${name}.js";`));
+  if (autoExported) {
+    console.log(chalk.green(`  Exported: ${pascalName}Email added to email/src/index.ts`));
+  } else if (!existsSync(emailIndexPath)) {
+    console.log();
+    console.log(chalk.yellow("  Could not auto-export. Manually add to packages/email/src/index.ts:"));
+    console.log(chalk.cyan(`    ${exportLine}`));
+  }
   console.log();
 }
 

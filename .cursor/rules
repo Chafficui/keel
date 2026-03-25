@@ -13,11 +13,16 @@
 - Frontend uses useAuth() hook for auth state
 - TailwindCSS theme colors: keel-navy, keel-blue, keel-gray-{50,100,400,800,900}
 
-## Adding Features
-- New route: packages/backend/src/routes/<name>.ts, mount in index.ts before // [SAIL_ROUTES]
-- New page: packages/frontend/src/pages/<Name>.tsx, add to router.tsx
-- New table: packages/backend/src/db/schema/<name>.ts, export from index.ts, run db:generate + db:migrate
-- New email: packages/email/src/<name>.tsx, export from index.ts
+## IMPORTANT: Use keel CLI for scaffolding
+ALWAYS use these commands instead of manually creating files:
+- npx keel generate route <name>  — creates route + auto-mounts in index.ts
+- npx keel generate page <name>   — creates page + auto-adds to router.tsx
+- npx keel generate email <name>  — creates template + auto-exports
+- npx keel sail add <name>        — installs sail extension
+- npm run check                   — verify all changes (typecheck + lint + test)
+
+## Adding a Database Table
+- Create schema in packages/backend/src/db/schema/<name>.ts, export from index.ts, run db:generate + db:migrate
 
 ## Verification
 After any change, run: npm run check
