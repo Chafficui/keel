@@ -13,6 +13,9 @@ import profileRoutes from "./routes/profile.js";
 
 const app = express();
 
+// Trust proxy (Railway, Vercel, etc. sit behind a reverse proxy)
+app.set("trust proxy", 1);
+
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: {
