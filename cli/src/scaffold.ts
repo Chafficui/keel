@@ -10,6 +10,7 @@ import {
   existsSync,
   readFileSync,
   writeFileSync,
+  copyFileSync,
   mkdirSync,
   rmSync,
 } from "node:fs";
@@ -77,6 +78,13 @@ function cleanupScaffold(targetDir: string): void {
     if (existsSync(fullPath)) {
       rmSync(fullPath, { recursive: true, force: true });
     }
+  }
+
+  // Promote PROJECT_CLAUDE.md → CLAUDE.md (AI agent documentation for the project)
+  const projectClaudeMd = join(targetDir, "PROJECT_CLAUDE.md");
+  if (existsSync(projectClaudeMd)) {
+    copyFileSync(projectClaudeMd, join(targetDir, "CLAUDE.md"));
+    rmSync(projectClaudeMd);
   }
 }
 
