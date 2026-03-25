@@ -14,7 +14,7 @@ import {
   rmSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import degit from "degit";
@@ -106,10 +106,7 @@ export async function scaffold(config: ProjectConfig): Promise<boolean> {
     }
 
     if (!cloned) {
-      execSync(
-        `git clone --depth 1 https://github.com/${TEMPLATE_REPO}.git "${targetDir}"`,
-        { stdio: "pipe" }
-      );
+      execFileSync("git", ["clone", "--depth", "1", `https://github.com/${TEMPLATE_REPO}.git`, targetDir], { stdio: "pipe" });
       rmSync(join(targetDir, ".git"), { recursive: true, force: true });
     }
 

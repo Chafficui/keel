@@ -197,6 +197,14 @@ function toPascalCase(str: string): string {
     .join("");
 }
 
+function validateGeneratorName(name: string): string {
+  if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name)) {
+    console.error(chalk.red("  Error: Name must start with a letter and contain only letters, numbers, hyphens, and underscores."));
+    process.exit(1);
+  }
+  return name;
+}
+
 // ---------------------------------------------------------------------------
 // Commands — Sail Management
 // ---------------------------------------------------------------------------
@@ -847,6 +855,7 @@ async function commandDoctor(): Promise<void> {
 
 function commandGenerateRoute(name: string): void {
   requireKeelProject();
+  validateGeneratorName(name);
 
   const filePath = join(process.cwd(), "packages", "backend", "src", "routes", `${name}.ts`);
 
@@ -888,6 +897,7 @@ export default router;
 
 function commandGeneratePage(name: string): void {
   requireKeelProject();
+  validateGeneratorName(name);
 
   const pascalName = toPascalCase(name);
   const filePath = join(process.cwd(), "packages", "frontend", "src", "pages", `${pascalName}.tsx`);
@@ -928,6 +938,7 @@ function commandGeneratePage(name: string): void {
 
 function commandGenerateEmail(name: string): void {
   requireKeelProject();
+  validateGeneratorName(name);
 
   const pascalName = toPascalCase(name);
   const filePath = join(process.cwd(), "packages", "email", "src", `${name}.tsx`);
@@ -1055,10 +1066,10 @@ async function commandDbReset(): Promise<void> {
       // Fall back to default "keel" if parsing fails
     }
 
-    execSync(
-      `docker exec ${containerId} psql -U postgres -d ${dbName} -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"`,
-      { stdio: "pipe" }
-    );
+    execFileSync("docker", [
+      "exec", containerId, "psql", "-U", "postgres", "-d", dbName,
+      "-c", "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+    ], { stdio: "pipe" });
     spinner.succeed("  Database schema reset");
   } catch (error) {
     spinner.fail("  Failed to reset database schema");

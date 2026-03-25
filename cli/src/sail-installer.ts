@@ -21,7 +21,7 @@ import {
 } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import type { ProjectConfig } from "./prompts.js";
@@ -176,6 +176,8 @@ export function insertAtMarker(
 /**
  * Install npm packages into a workspace.
  */
+const SAFE_PACKAGE_NAME = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/;
+
 function installDeps(
   deps: Record<string, string>,
   workspace: string,
@@ -184,8 +186,14 @@ function installDeps(
   const entries = Object.entries(deps);
   if (entries.length === 0) return;
 
-  const packages = entries.map(([name, version]) => `${name}@${version}`).join(" ");
-  execSync(`npm install ${packages} --workspace=${workspace}`, {
+  for (const [name] of entries) {
+    if (!SAFE_PACKAGE_NAME.test(name)) {
+      throw new Error(`Invalid package name: ${name}`);
+    }
+  }
+
+  const packageList = entries.map(([name, version]) => `${name}@${version}`);
+  execFileSync("npm", ["install", ...packageList, `--workspace=${workspace}`], {
     cwd,
     stdio: "pipe",
   });
@@ -359,7 +367,7 @@ function installPushNotifications(sailDir: string, projectDir: string): void {
 
   // Generate migrations
   try {
-    execSync("npx drizzle-kit generate", {
+    execFileSync("npx", ["drizzle-kit", "generate"], {
       cwd: backendDir,
       stdio: "pipe",
     });
@@ -530,7 +538,7 @@ import { CheckoutPage } from "./pages/Checkout";`
 
   // Generate migrations
   try {
-    execSync("npx drizzle-kit generate", {
+    execFileSync("npx", ["drizzle-kit", "generate"], {
       cwd: backendDir,
       stdio: "pipe",
     });
@@ -947,7 +955,7 @@ interface Session {`
 
   // Generate migrations
   try {
-    execSync("npx drizzle-kit generate", {
+    execFileSync("npx", ["drizzle-kit", "generate"], {
       cwd: backendDir,
       stdio: "pipe",
     });
@@ -1165,7 +1173,7 @@ function installFileUploads(sailDir: string, projectDir: string): void {
 
   // Generate migrations
   try {
-    execSync("npx drizzle-kit generate", {
+    execFileSync("npx", ["drizzle-kit", "generate"], {
       cwd: backendDir,
       stdio: "pipe",
     });
