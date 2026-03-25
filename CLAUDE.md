@@ -248,6 +248,18 @@ Sails inject code at marker comments in base files:
 
 The `brand/` folder contains Keel's own brand guidelines and assets (for the CLI and keel.codai.app). Consumer apps should replace all branding with their own.
 
+## AI Agent Support
+
+Every generated project includes instruction files for major AI coding tools:
+- `CLAUDE.md` — Claude Code, Claude Agent SDK
+- `AGENTS.md` — Generic AI agents
+- `.cursor/rules` — Cursor
+- `.github/copilot-instructions.md` — GitHub Copilot
+- `.windsurfrules` — Windsurf
+- `.editorconfig` — Universal editor settings
+
+These files contain the same core information adapted to each tool's format. They are generated from `PROJECT_CLAUDE.md` during `keel create`.
+
 ## File Import Convention
 - All `.ts` imports use `.js` extension (ESM + NodeNext requirement)
 - Example: `import { db } from "./db/index.js"`

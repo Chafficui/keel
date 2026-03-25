@@ -104,6 +104,7 @@ npm run build            # Build all packages in order
 npm run typecheck        # Type check all packages
 npm run lint             # Run ESLint across all packages
 npm run format           # Format code with Prettier
+npm run check            # typecheck + lint + test (run after every change)
 npm run db:generate      # Generate migration from schema changes
 npm run db:migrate       # Apply pending migrations
 npm run db:push          # Push schema directly (dev only)

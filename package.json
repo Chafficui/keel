@@ -29,6 +29,7 @@
     "cap:sync": "npm run cap:sync -w packages/frontend",
     "cap:ios": "npm run cap:ios -w packages/frontend",
     "cap:android": "npm run cap:android -w packages/frontend",
+    "check": "npm run typecheck && npm run lint && npm run test",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

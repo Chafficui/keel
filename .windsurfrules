@@ -1,0 +1,23 @@
+# Keel Project Rules
+
+## Tech Stack
+- Frontend: Vite + React 19 + TypeScript + TailwindCSS v4
+- Backend: Express 5 + TypeScript (ESM)
+- Database: PostgreSQL + Drizzle ORM
+- Auth: BetterAuth
+
+## Critical Rules
+- ALL TypeScript imports MUST use .js extension (ESM): import { x } from "./foo.js"
+- Shared types: import from "@keel/shared"
+- Backend routes use requireAuth middleware for protected endpoints
+- Frontend uses useAuth() hook for auth state
+- TailwindCSS theme colors: keel-navy, keel-blue, keel-gray-{50,100,400,800,900}
+
+## Adding Features
+- New route: packages/backend/src/routes/<name>.ts, mount in index.ts before // [SAIL_ROUTES]
+- New page: packages/frontend/src/pages/<Name>.tsx, add to router.tsx
+- New table: packages/backend/src/db/schema/<name>.ts, export from index.ts, run db:generate + db:migrate
+- New email: packages/email/src/<name>.tsx, export from index.ts
+
+## Verification
+After any change, run: npm run check
