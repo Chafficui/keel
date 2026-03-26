@@ -11,6 +11,7 @@ import {
   Heading,
 } from "@react-email/components";
 import type * as React from "react";
+import { sanitizeUrl } from "./utils.js";
 
 interface AccountDeletionCancelledEmailProps {
   userName: string;
@@ -19,8 +20,9 @@ interface AccountDeletionCancelledEmailProps {
 
 export function AccountDeletionCancelledEmail({
   userName,
-  dashboardUrl,
+  dashboardUrl: rawDashboardUrl,
 }: AccountDeletionCancelledEmailProps) {
+  const dashboardUrl = sanitizeUrl(rawDashboardUrl);
   return (
     <Html>
       <Head />

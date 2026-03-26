@@ -28,7 +28,7 @@ export const passwordResetRequestSchema = z.object({
 export type PasswordResetRequestSchemaInput = z.infer<typeof passwordResetRequestSchema>;
 
 export const passwordResetSchema = z.object({
-  token: z.string().min(1, "Token is required"),
+  token: z.string().min(10, "Token must be at least 10 characters"),
   newPassword: z
     .string()
     .min(8, "Password must be at least 8 characters")

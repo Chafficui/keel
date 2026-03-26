@@ -18,3 +18,8 @@ export {
   consentInputSchema,
   type ConsentInputSchemaInput,
 } from "./consent.js";
+
+export {
+  paginationSchema,
+  type PaginationSchemaInput,
+} from "./pagination.js";

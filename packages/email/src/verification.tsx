@@ -11,12 +11,14 @@ import {
   Heading,
 } from "@react-email/components";
 import type * as React from "react";
+import { sanitizeUrl } from "./utils.js";
 
 interface VerificationEmailProps {
   verificationUrl: string;
 }
 
-export function VerificationEmail({ verificationUrl }: VerificationEmailProps) {
+export function VerificationEmail({ verificationUrl: rawVerificationUrl }: VerificationEmailProps) {
+  const verificationUrl = sanitizeUrl(rawVerificationUrl);
   return (
     <Html>
       <Head />

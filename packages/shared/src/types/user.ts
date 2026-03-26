@@ -16,5 +16,5 @@ export interface UserProfile extends User {
 
 export interface UpdateProfileInput {
   name?: string;
-  image?: string;
+  image?: string | null;
 }

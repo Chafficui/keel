@@ -38,6 +38,7 @@ vi.mock("../db/index.js", () => ({
   db: {
     execute: vi.fn().mockResolvedValue([{ "?column?": 1 }]),
     update: () => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
       set: (data: any) => ({
         where: () => ({
           returning: () => Promise.resolve([{
@@ -191,6 +192,7 @@ async function makeRequest(
     headers?: Record<string, string>;
     body?: unknown;
   } = {},
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper returns dynamic response shapes
 ): Promise<{ status: number; body: any }> {
   return new Promise((resolve) => {
     const server = app.listen(0, () => {
@@ -209,12 +211,14 @@ async function makeRequest(
         headers["Content-Type"] = "application/json";
       }
 
+      const body = options.body ? JSON.stringify(options.body) : undefined;
       fetch(url, {
         method,
         headers,
-        body: options.body ? JSON.stringify(options.body) : undefined,
+        ...(body ? { body } : {}),
       })
         .then(async (res) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic response body
           let body: any;
           try {
             body = await res.json();

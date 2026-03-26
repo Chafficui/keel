@@ -20,14 +20,17 @@ const { requireAuth } = await import("../middleware/auth.js");
 
 function createMockRequest(overrides: Partial<{
   headers: Record<string, string | undefined>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mocks are partial implementations
 }> = {}): any {
   return {
     headers: overrides.headers ?? {},
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mocks are partial implementations
 function createMockResponse(): any {
-  const res: any = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+  const res = {} as any;
   res.status = vi.fn().mockReturnValue(res);
   res.json = vi.fn().mockReturnValue(res);
   return res;

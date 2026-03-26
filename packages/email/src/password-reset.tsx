@@ -11,12 +11,14 @@ import {
   Heading,
 } from "@react-email/components";
 import type * as React from "react";
+import { sanitizeUrl } from "./utils.js";
 
 interface PasswordResetEmailProps {
   resetUrl: string;
 }
 
-export function PasswordResetEmail({ resetUrl }: PasswordResetEmailProps) {
+export function PasswordResetEmail({ resetUrl: rawResetUrl }: PasswordResetEmailProps) {
+  const resetUrl = sanitizeUrl(rawResetUrl);
   return (
     <Html>
       <Head />

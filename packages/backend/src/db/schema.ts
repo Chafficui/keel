@@ -47,7 +47,10 @@ export const accounts = pgTable("accounts", {
   password: text("password"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("accounts_user_id_idx").on(table.userId),
+  index("accounts_provider_account_idx").on(table.providerId, table.accountId),
+]);
 
 export const verifications = pgTable("verifications", {
   id: text("id").primaryKey(),
@@ -56,7 +59,10 @@ export const verifications = pgTable("verifications", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("verifications_identifier_idx").on(table.identifier),
+  index("verifications_expires_at_idx").on(table.expiresAt),
+]);
 
 // [SAIL_SCHEMA]
 

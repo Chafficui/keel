@@ -231,7 +231,7 @@ describe("passwordResetSchema", () => {
     if (!result.success) {
       const tokenErrors = result.error.flatten().fieldErrors["token"];
       expect(tokenErrors).toBeDefined();
-      expect(tokenErrors).toContain("Token is required");
+      expect(tokenErrors).toContain("Token must be at least 10 characters");
     }
   });
 

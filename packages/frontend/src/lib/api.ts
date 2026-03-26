@@ -33,6 +33,8 @@ export class ApiError extends Error {
   }
 }
 
+const DEFAULT_TIMEOUT_MS = 30_000;
+
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -40,31 +42,39 @@ export async function apiFetch<T>(
   const baseURL = getBaseURL();
   const authHeaders = await getAuthHeaders();
 
-  const response = await fetch(`${baseURL}${endpoint}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders,
-      ...options.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
-  if (!response.ok) {
-    let data: unknown;
-    try {
-      data = await response.json();
-    } catch {
-      // Response body is not JSON
+  try {
+    const response = await fetch(`${baseURL}${endpoint}`, {
+      ...options,
+      signal: options.signal ?? controller.signal,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders,
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      let data: unknown;
+      try {
+        data = await response.json();
+      } catch {
+        // Response body is not JSON
+      }
+      throw new ApiError(response.status, response.statusText, data);
     }
-    throw new ApiError(response.status, response.statusText, data);
-  }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
+    if (response.status === 204) {
+      return undefined as T;
+    }
 
-  return response.json();
+    return response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export function apiGet<T>(endpoint: string): Promise<T> {
@@ -74,14 +84,14 @@ export function apiGet<T>(endpoint: string): Promise<T> {
 export function apiPost<T>(endpoint: string, body?: unknown): Promise<T> {
   return apiFetch<T>(endpoint, {
     method: "POST",
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
 }
 
 export function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> {
   return apiFetch<T>(endpoint, {
     method: "PATCH",
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
 }
 

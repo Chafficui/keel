@@ -23,9 +23,9 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync, execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { confirm } from "@inquirer/prompts";
@@ -102,7 +102,11 @@ interface SailManifest {
 // ---------------------------------------------------------------------------
 
 function loadRegistry(): Registry {
-  return JSON.parse(readFileSync(REGISTRY_PATH, "utf-8"));
+  try {
+    return JSON.parse(readFileSync(REGISTRY_PATH, "utf-8"));
+  } catch (error) {
+    throw new Error(`Failed to parse sail registry at ${REGISTRY_PATH}: ${(error as Error).message}`);
+  }
 }
 
 function getInstalledJsonPath(): string {
@@ -114,7 +118,11 @@ function loadInstalled(): InstalledJson {
   if (!existsSync(path)) {
     return { installed: [] };
   }
-  return JSON.parse(readFileSync(path, "utf-8"));
+  try {
+    return JSON.parse(readFileSync(path, "utf-8"));
+  } catch (error) {
+    throw new Error(`Failed to parse installed.json at ${path}: ${(error as Error).message}`);
+  }
 }
 
 function saveInstalled(data: InstalledJson): void {
@@ -160,7 +168,14 @@ function migrateInstalledJson(data: InstalledJson): InstalledJson {
 }
 
 function getSailDir(sailName: string): string {
-  return join(BUNDLED_SAILS_DIR, sailName);
+  if (/[./\\]/.test(sailName)) {
+    throw new Error(`Invalid sail name: "${sailName}" — must not contain ".", "/", or "\\".`);
+  }
+  const resolved = resolve(BUNDLED_SAILS_DIR, sailName);
+  if (!resolved.startsWith(BUNDLED_SAILS_DIR + "/") && resolved !== BUNDLED_SAILS_DIR) {
+    throw new Error(`Invalid sail name: "${sailName}" — resolved path escapes sails directory.`);
+  }
+  return resolved;
 }
 
 function requireKeelProject(): void {
@@ -179,7 +194,11 @@ function requireKeelProject(): void {
 function loadSailManifest(sailName: string): SailManifest | null {
   const manifestPath = join(getSailDir(sailName), "addon.json");
   if (!existsSync(manifestPath)) return null;
-  return JSON.parse(readFileSync(manifestPath, "utf-8"));
+  try {
+    return JSON.parse(readFileSync(manifestPath, "utf-8"));
+  } catch (error) {
+    throw new Error(`Failed to parse sail manifest at ${manifestPath}: ${(error as Error).message}`);
+  }
 }
 
 /**
@@ -240,6 +259,11 @@ function toPascalCase(str: string): string {
 function validateGeneratorName(name: string): string {
   if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name)) {
     console.error(chalk.red("  Error: Name must start with a letter and contain only letters, numbers, hyphens, and underscores."));
+    process.exit(1);
+  }
+  const pascal = toPascalCase(name);
+  if (!/^[A-Z][a-zA-Z0-9]*$/.test(pascal)) {
+    console.error(chalk.red("  Error: Name produces an invalid identifier after transformation."));
     process.exit(1);
   }
   return name;
@@ -697,7 +721,8 @@ function commandInfo(sailName: string): void {
 function runSync(cmd: string, label: string): boolean {
   const spinner = ora(`  ${label}...`).start();
   try {
-    execSync(cmd, { cwd: process.cwd(), stdio: "pipe" });
+    const [bin, ...args] = cmd.split(" ");
+    execFileSync(bin, args, { cwd: process.cwd(), stdio: "pipe" });
     spinner.succeed(`  ${label}`);
     return true;
   } catch {
@@ -712,7 +737,7 @@ function hasDockerCompose(): boolean {
 
 function hasDocker(): boolean {
   try {
-    execSync("docker info", { stdio: "pipe" });
+    execFileSync("docker", ["info"], { stdio: "pipe" });
     return true;
   } catch {
     return false;
@@ -725,7 +750,7 @@ function hasDocker(): boolean {
 function startDatabase(): void {
   const spinner = ora("  Starting database...").start();
   try {
-    const output = execSync("docker compose up -d 2>&1", {
+    const output = execFileSync("docker", ["compose", "up", "-d"], {
       cwd: process.cwd(),
       stdio: "pipe",
     }).toString();
@@ -889,7 +914,7 @@ async function commandDoctor(): Promise<void> {
 
   // npm version
   try {
-    const npmVersion = execSync("npm --version", { stdio: "pipe" }).toString().trim();
+    const npmVersion = execFileSync("npm", ["--version"], { stdio: "pipe" }).toString().trim();
     pass(`npm ${npmVersion}`);
   } catch {
     fail("npm — not found");
@@ -897,11 +922,11 @@ async function commandDoctor(): Promise<void> {
 
   // Docker available and running
   try {
-    execSync("docker info", { stdio: "pipe" });
+    execFileSync("docker", ["info"], { stdio: "pipe" });
     pass("Docker is running");
   } catch {
     try {
-      execSync("docker --version", { stdio: "pipe" });
+      execFileSync("docker", ["--version"], { stdio: "pipe" });
       fail("Docker is installed but not running");
     } catch {
       fail("Docker is not installed");
@@ -963,7 +988,7 @@ async function commandDoctor(): Promise<void> {
 
   // TypeScript (optional)
   try {
-    const tscVersion = execSync("npx tsc --version", { stdio: "pipe", timeout: 10000 }).toString().trim();
+    const tscVersion = execFileSync("npx", ["tsc", "--version"], { stdio: "pipe", timeout: 10000 }).toString().trim();
     pass(`TypeScript ${tscVersion}`);
   } catch {
     warn("TypeScript — tsc not found (optional)");
@@ -1244,10 +1269,10 @@ async function commandDbReset(): Promise<void> {
 
   try {
     // Try to find a running postgres container
-    const containerId = execSync(
-      'docker ps -q --filter "ancestor=postgres" | head -1',
+    const containerId = execFileSync(
+      "docker", ["ps", "-q", "--filter", "ancestor=postgres"],
       { stdio: "pipe" }
-    ).toString().trim();
+    ).toString().trim().split("\n")[0];
 
     if (!containerId) {
       spinner.fail("  No running PostgreSQL Docker container found");
@@ -1406,7 +1431,7 @@ async function commandUpgrade(): Promise<void> {
 
   // Check latest version
   try {
-    const latest = execSync("npm view keel version", { stdio: "pipe" }).toString().trim();
+    const latest = execFileSync("npm", ["view", "keel", "version"], { stdio: "pipe" }).toString().trim();
     console.log(`  Latest version:  ${chalk.cyan(latest)}`);
   } catch {
     console.log(chalk.gray("  Could not check latest version."));

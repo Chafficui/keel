@@ -32,11 +32,16 @@ export default function EmailVerification() {
       } catch (err) {
         if (!cancelled) {
           setStatus("error");
-          setErrorMessage(
-            err instanceof Error
-              ? err.message
-              : "Verification failed. The link may have expired.",
-          );
+          const msg = err instanceof Error ? err.message : "";
+          if (msg.includes("expired") || msg.includes("token_expired")) {
+            setErrorMessage("This verification link has expired. Please request a new one.");
+          } else if (msg.includes("invalid") || msg.includes("token_invalid")) {
+            setErrorMessage("This verification link is invalid. Please request a new one.");
+          } else if (msg.includes("already_verified") || msg.includes("already verified")) {
+            setErrorMessage("This email has already been verified. You can sign in.");
+          } else {
+            setErrorMessage("An unexpected error occurred. Please try again.");
+          }
         }
       }
     }

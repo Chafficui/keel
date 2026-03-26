@@ -11,6 +11,7 @@ import {
   Heading,
 } from "@react-email/components";
 import type * as React from "react";
+import { sanitizeUrl } from "./utils.js";
 
 interface DataExportReadyEmailProps {
   userName: string;
@@ -20,9 +21,10 @@ interface DataExportReadyEmailProps {
 
 export function DataExportReadyEmail({
   userName,
-  downloadUrl,
+  downloadUrl: rawDownloadUrl,
   expiresIn,
 }: DataExportReadyEmailProps) {
+  const downloadUrl = sanitizeUrl(rawDownloadUrl);
   return (
     <Html>
       <Head />

@@ -11,13 +11,15 @@ import {
   Heading,
 } from "@react-email/components";
 import type * as React from "react";
+import { sanitizeUrl } from "./utils.js";
 
 interface WelcomeEmailProps {
   userName: string;
   baseUrl?: string;
 }
 
-export function WelcomeEmail({ userName, baseUrl = "http://localhost:5173" }: WelcomeEmailProps) {
+export function WelcomeEmail({ userName, baseUrl: rawBaseUrl = "http://localhost:5173" }: WelcomeEmailProps) {
+  const baseUrl = sanitizeUrl(rawBaseUrl);
   return (
     <Html>
       <Head />

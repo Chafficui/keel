@@ -17,4 +17,5 @@ export const deletionRequests = pgTable("deletion_requests", {
 }, (table) => [
   index("deletion_requests_user_id_idx").on(table.userId),
   index("deletion_requests_scheduled_at_idx").on(table.userId, table.scheduledDeletionAt),
+  index("deletion_requests_status_scheduled_idx").on(table.status, table.scheduledDeletionAt),
 ]);

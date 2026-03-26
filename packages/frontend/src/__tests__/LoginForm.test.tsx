@@ -114,7 +114,7 @@ describe("LoginForm", () => {
     fireEvent.click(submitButtons[0]!);
 
     await vi.waitFor(() => {
-      expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
+      expect(screen.getByText("Invalid email or password.")).toBeInTheDocument();
     });
   });
 
@@ -132,8 +132,7 @@ describe("LoginForm", () => {
     fireEvent.click(submitButtons[0]!);
 
     await vi.waitFor(() => {
-      const errorMessages = screen.getAllByText(/login failed/i);
-      expect(errorMessages.length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText("An unexpected error occurred. Please try again.")).toBeInTheDocument();
     });
   });
 

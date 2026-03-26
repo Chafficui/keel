@@ -11,6 +11,7 @@ import {
   Heading,
 } from "@react-email/components";
 import type * as React from "react";
+import { sanitizeUrl } from "./utils.js";
 
 interface ConsentChange {
   type: string;
@@ -26,8 +27,9 @@ interface ConsentUpdatedEmailProps {
 export function ConsentUpdatedEmail({
   userName,
   changes,
-  baseUrl = "http://localhost:5173",
+  baseUrl: rawBaseUrl = "http://localhost:5173",
 }: ConsentUpdatedEmailProps) {
+  const baseUrl = sanitizeUrl(rawBaseUrl);
   return (
     <Html>
       <Head />

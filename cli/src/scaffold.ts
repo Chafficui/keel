@@ -15,7 +15,7 @@ import {
   rmSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
-import { execSync, execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import degit from "degit";
@@ -278,9 +278,9 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
 
   // -- Docker-compose --------------------------------------------------------
   if (config.databaseSetup === "docker") {
-    // Template already ships with docker-compose.yml — just confirm it exists
-    if (!existsSync(join(targetDir, "docker-compose.yml"))) {
-      const content = `services:
+    // Template already ships with docker-compose.yml — only write if missing
+    const dockerComposePath = join(targetDir, "docker-compose.yml");
+    const content = `services:
   postgres:
     image: postgres:16-alpine
     environment:
@@ -295,7 +295,11 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
 volumes:
   postgres_data:
 `;
-      writeFileSync(join(targetDir, "docker-compose.yml"), content, "utf-8");
+    try {
+      writeFileSync(dockerComposePath, content, { encoding: "utf-8", flag: "wx" });
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      // File already exists (from template) — nothing to do
     }
   }
 
@@ -303,10 +307,12 @@ volumes:
   const installSpinner = ora("Installing dependencies (this may take a minute)...").start();
 
   try {
-    execSync("npm install", { cwd: targetDir, stdio: "pipe", timeout: 300_000 });
+    execFileSync("npm", ["install"], { cwd: targetDir, stdio: "pipe", timeout: 300_000 });
     installSpinner.succeed("Dependencies installed");
-  } catch {
+  } catch (error) {
     installSpinner.fail("Failed to install dependencies");
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(chalk.yellow(`  ${msg}`));
     console.error(chalk.yellow("  Run 'npm install' manually in the project directory."));
   }
 
@@ -314,15 +320,16 @@ volumes:
   const gitSpinner = ora("Initializing git repository...").start();
 
   try {
-    execSync("git init", { cwd: targetDir, stdio: "pipe" });
-    execSync("git add -A", { cwd: targetDir, stdio: "pipe" });
-    execSync('git commit -m "Initial commit from create-keel"', {
+    execFileSync("git", ["init"], { cwd: targetDir, stdio: "pipe" });
+    execFileSync("git", ["add", "-A"], { cwd: targetDir, stdio: "pipe" });
+    execFileSync("git", ["commit", "-m", "Initial commit from create-keel"], {
       cwd: targetDir,
       stdio: "pipe",
     });
     gitSpinner.succeed("Git repository initialized");
-  } catch {
-    gitSpinner.warn("Could not initialize git. Run 'git init' manually.");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    gitSpinner.warn(`Could not initialize git: ${msg}`);
   }
 
   return true;

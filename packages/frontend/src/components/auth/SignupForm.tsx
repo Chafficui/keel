@@ -27,6 +27,21 @@ export default function SignupForm() {
       return;
     }
 
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter.");
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter.");
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -153,7 +168,7 @@ export default function SignupForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
-              placeholder="At least 8 characters"
+              placeholder="Min 8 chars, uppercase, lowercase, number"
               className="w-full rounded-lg border border-keel-gray-800 bg-keel-gray-900 px-3 py-2 text-sm text-white placeholder-keel-gray-400 focus:border-keel-blue focus:outline-none focus:ring-2 focus:ring-keel-blue/20"
             />
           </div>

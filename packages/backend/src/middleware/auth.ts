@@ -12,7 +12,7 @@ declare global {
         image: string | null;
         createdAt: Date;
         updatedAt: Date;
-      };
+      } | undefined;
       session?: {
         id: string;
         userId: string;
@@ -22,7 +22,7 @@ declare global {
         userAgent: string | null;
         createdAt: Date;
         updatedAt: Date;
-      };
+      } | undefined;
     }
   }
 }
