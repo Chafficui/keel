@@ -30,5 +30,6 @@ export async function sendEmail(options: {
       { to: options.to, subject: options.subject, error },
       "Failed to send email via Resend",
     );
+    throw error;
   }
 }

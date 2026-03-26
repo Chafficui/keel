@@ -21,8 +21,11 @@ export function useDeepLinks() {
         const url = new URL(event.url);
         const path = url.pathname + url.search;
 
-        const isAllowed = allowedDeepLinkPaths.some((allowed) =>
-          path.startsWith(allowed),
+        const isAllowed = allowedDeepLinkPaths.some(
+          (allowed) =>
+            path === allowed ||
+            path.startsWith(allowed + "?") ||
+            path.startsWith(allowed + "/"),
         );
 
         if (isAllowed) {

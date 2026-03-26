@@ -26,7 +26,16 @@ export default function LoginForm() {
       await login(email, password);
       navigate(returnUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("invalid_credentials") || msg.includes("Invalid email or password")) {
+        setError("Invalid email or password.");
+      } else if (msg.includes("email_not_verified") || msg.includes("not verified")) {
+        setError("Please verify your email before signing in.");
+      } else if (msg.includes("too_many_requests") || msg.includes("rate")) {
+        setError("Too many attempts. Please try again later.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

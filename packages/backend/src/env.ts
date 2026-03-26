@@ -62,6 +62,14 @@ if (env.NODE_ENV === "production") {
   }
 }
 
+// Warn about weak auth secret in non-production
+if (env.NODE_ENV !== "production" && env.BETTER_AUTH_SECRET.length < 32) {
+  console.warn(
+    `WARNING: BETTER_AUTH_SECRET is only ${env.BETTER_AUTH_SECRET.length} characters long. ` +
+      "Use at least 32 characters for adequate security.",
+  );
+}
+
 // Warn about missing services in development
 if (env.NODE_ENV === "development") {
   const warnings: string[] = [];

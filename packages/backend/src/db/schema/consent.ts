@@ -17,4 +17,5 @@ export const consentRecords = pgTable("consent_records", {
   revokedAt: timestamp("revoked_at"),
 }, (table) => [
   index("consent_records_user_id_idx").on(table.userId),
+  index("consent_records_user_consent_type_idx").on(table.userId, table.consentType),
 ]);

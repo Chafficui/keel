@@ -5,8 +5,9 @@ import { corsMiddleware } from "./middleware/cors.js";
 import { authLimiter, apiLimiter, publicLimiter } from "./middleware/rate-limit.js";
 import { csrfProtection } from "./middleware/csrf.js";
 import { toNodeHandler } from "./auth/index.js";
-import { closeDb } from "./db/index.js";
+import { closeDb, db } from "./db/index.js";
 import { logger } from "./lib/logger.js";
+import { sql } from "drizzle-orm";
 import healthRoutes from "./routes/health.js";
 import profileRoutes from "./routes/profile.js";
 // [SAIL_IMPORTS]
@@ -54,11 +55,26 @@ app.use("/api/{*splat}", (_req, res) => {
   res.status(404).json({ error: "Not found" });
 });
 
-const server = app.listen(env.PORT, () => {
+// Global error handler
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error(err, "Unhandled error");
+  const message = env.NODE_ENV === "production" ? "Internal server error" : String(err);
+  res.status(500).json({ error: message });
+});
+
+const server = app.listen(env.PORT, async () => {
   logger.info(
     { port: env.PORT, env: env.NODE_ENV },
     "Server started",
   );
+
+  try {
+    await db.execute(sql`SELECT 1`);
+    logger.info("Database connection verified");
+  } catch (error) {
+    logger.error(error, "Database connection failed");
+    process.exit(1);
+  }
 });
 
 // Graceful shutdown

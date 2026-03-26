@@ -29,6 +29,7 @@ export function useAuth() {
 
       return result.data;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- authClient, isNative, Preferences are module-level constants
     [],
   );
 
@@ -49,11 +50,16 @@ export function useAuth() {
 
       return result.data;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- authClient, isNative, Preferences are module-level constants
     [],
   );
 
   const logout = useCallback(async () => {
-    await authClient.signOut();
+    try {
+      await authClient.signOut();
+    } catch {
+      // Always proceed with local cleanup even if signOut fails
+    }
 
     if (isNative) {
       await Preferences.remove({ key: "auth_token" });
