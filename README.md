@@ -39,7 +39,7 @@
 
 ```bash
 # Create a new project
-npx keel create my-app
+npx @codai/keel create my-app
 
 # Follow the setup wizard — it configures everything:
 #   → Project name & branding
@@ -52,7 +52,7 @@ npx keel create my-app
 ### Zero-Config Start (no Docker needed)
 
 ```bash
-npx keel create my-app --yes --db=pglite
+npx @codai/keel create my-app --yes --db=pglite
 cd my-app
 keel dev
 ```
@@ -144,13 +144,13 @@ Sails are optional packages that add functionality to your Keel project. They're
 
 ```bash
 # List available sails
-npx keel list
+npx @codai/keel list
 
 # Install a sail (runs interactive setup wizard)
-npx keel sail add google-oauth
+npx @codai/keel sail add google-oauth
 
 # Get info about a sail before installing
-npx keel info stripe
+npx @codai/keel info stripe
 ```
 
 ### Available Sails

@@ -12,10 +12,10 @@ Auth: BetterAuth with requireAuth middleware on backend, useAuth() hook on front
 Database: PostgreSQL with Drizzle ORM. Schema in packages/backend/src/db/schema/.
 Styling: TailwindCSS v4 with custom theme (keel-navy, keel-blue, keel-gray-*).
 
-IMPORTANT: Use keel CLI commands for scaffolding. Run `npx keel generate route <name>` to create API routes (auto-mounts in index.ts). Run `npx keel generate page <name>` to create React pages (auto-adds to router.tsx). Run `npx keel generate email <name>` to create email templates (auto-exports). Never manually create these files — the CLI handles mounting, importing, and exporting automatically.
+IMPORTANT: Use keel CLI commands for scaffolding. Run `npx @codai/keel generate route <name>` to create API routes (auto-mounts in index.ts). Run `npx @codai/keel generate page <name>` to create React pages (auto-adds to router.tsx). Run `npx @codai/keel generate email <name>` to create email templates (auto-exports). Never manually create these files — the CLI handles mounting, importing, and exporting automatically.
 
 When adding a DB table: create schema, export from index.ts, run npm run db:generate && npm run db:migrate.
-When installing a sail: run `npx keel sail add <name>`. Do NOT manually copy sail code.
+When installing a sail: run `npx @codai/keel sail add <name>`. Do NOT manually copy sail code.
 
 Do NOT remove sail marker comments (// [SAIL_IMPORTS], // [SAIL_ROUTES], etc.)
 Always verify with: npm run check

@@ -47,7 +47,7 @@ npx tsx cli/sails/rate-limiting/install.ts
 Or use the CLI:
 
 ```bash
-npx keel sail add rate-limiting
+npx @codai/keel sail add rate-limiting
 ```
 
 The installer will:

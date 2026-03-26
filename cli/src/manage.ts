@@ -7,19 +7,19 @@
  * run database operations, and perform health checks.
  *
  * Usage:
- *   npx keel sail add <name>        — install a sail into the current project
- *   npx keel sail remove <name>     — remove a sail from the current project
- *   npx keel list                   — list available sails with status
- *   npx keel info <name>            — show sail details
- *   npx keel doctor                 — run project health checks
- *   npx keel generate route <name>  — scaffold a new API route
- *   npx keel generate page <name>   — scaffold a new React page
- *   npx keel generate email <name>  — scaffold a new email template
- *   npx keel db:reset               — drop and recreate database schema
- *   npx keel db:studio              — open Drizzle Studio
- *   npx keel db:seed                — run database seed file
- *   npx keel env                    — check environment variables
- *   npx keel upgrade                — upgrade keel CLI to latest version
+ *   npx @codai/keel sail add <name>        — install a sail into the current project
+ *   npx @codai/keel sail remove <name>     — remove a sail from the current project
+ *   npx @codai/keel list                   — list available sails with status
+ *   npx @codai/keel info <name>            — show sail details
+ *   npx @codai/keel doctor                 — run project health checks
+ *   npx @codai/keel generate route <name>  — scaffold a new API route
+ *   npx @codai/keel generate page <name>   — scaffold a new React page
+ *   npx @codai/keel generate email <name>  — scaffold a new email template
+ *   npx @codai/keel db:reset               — drop and recreate database schema
+ *   npx @codai/keel db:studio              — open Drizzle Studio
+ *   npx @codai/keel db:seed                — run database seed file
+ *   npx @codai/keel env                    — check environment variables
+ *   npx @codai/keel upgrade                — upgrade keel CLI to latest version
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from "node:fs";
@@ -1574,11 +1574,11 @@ function printUsage(): void {
   console.log();
 
   console.log("  Examples:");
-  console.log(chalk.gray("    npx keel create my-app"));
-  console.log(chalk.gray("    npx keel dev"));
-  console.log(chalk.gray("    npx keel sail add google-oauth"));
-  console.log(chalk.gray("    npx keel generate route users"));
-  console.log(chalk.gray("    npx keel doctor"));
+  console.log(chalk.gray("    npx @codai/keel create my-app"));
+  console.log(chalk.gray("    npx @codai/keel dev"));
+  console.log(chalk.gray("    npx @codai/keel sail add google-oauth"));
+  console.log(chalk.gray("    npx @codai/keel generate route users"));
+  console.log(chalk.gray("    npx @codai/keel doctor"));
   console.log();
 }
 
