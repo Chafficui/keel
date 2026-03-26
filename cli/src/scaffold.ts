@@ -98,19 +98,19 @@ export async function scaffold(config: ProjectConfig): Promise<boolean> {
   // -- Clone template --------------------------------------------------------
   const cloneSpinner = ora("Cloning template...").start();
 
+  if (existsSync(targetDir)) {
+    cloneSpinner.fail(`Directory already exists: ${config.projectName}`);
+    return false;
+  }
+
   try {
     let cloned = false;
     try {
       const emitter = degit(TEMPLATE_REPO, { cache: false, force: true, verbose: false });
       await emitter.clone(targetDir);
       cloned = true;
-    } catch (degitError: unknown) {
+    } catch {
       // degit failed (private repo) — fall back to git clone
-      // But first check if the directory was created by a concurrent process
-      if (existsSync(targetDir)) {
-        cloneSpinner.fail(`Directory already exists: ${config.projectName}`);
-        return false;
-      }
     }
 
     if (!cloned) {

@@ -14,7 +14,10 @@ import { sendEmail } from "../services/email.js";
 import { env } from "../env.js";
 
 const emailSchema = z.string().email();
-const urlSchema = z.string().url();
+const urlSchema = z
+  .string()
+  .url()
+  .refine((u) => u.startsWith("http://") || u.startsWith("https://"), "URL must use http or https");
 
 /** Resolve the frontend base URL at runtime from environment config. */
 function getBaseUrl(): string {

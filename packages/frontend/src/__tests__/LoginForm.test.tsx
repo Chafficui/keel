@@ -114,7 +114,7 @@ describe("LoginForm", () => {
     fireEvent.click(submitButtons[0]!);
 
     await vi.waitFor(() => {
-      expect(screen.getByText("An unexpected error occurred. Please try again.")).toBeInTheDocument();
+      expect(screen.getByText("Invalid email or password.")).toBeInTheDocument();
     });
   });
 

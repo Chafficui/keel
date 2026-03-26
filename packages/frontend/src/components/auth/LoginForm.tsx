@@ -27,7 +27,7 @@ export default function LoginForm() {
       navigate(returnUrl);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("invalid_credentials") || msg.includes("Invalid email or password")) {
+      if (msg.includes("invalid_credentials") || msg.includes("Invalid email or password") || msg.includes("Invalid credentials")) {
         setError("Invalid email or password.");
       } else if (msg.includes("email_not_verified") || msg.includes("not verified")) {
         setError("Please verify your email before signing in.");
