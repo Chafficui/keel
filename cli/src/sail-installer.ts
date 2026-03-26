@@ -376,9 +376,7 @@ function installPushNotifications(sailDir: string, projectDir: string): void {
   }
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.backend, "packages/backend", projectDir);
   installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
 
@@ -436,9 +434,7 @@ function installAnalytics(sailDir: string, projectDir: string): void {
   }
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
 
   // Add env vars
@@ -547,9 +543,7 @@ import { CheckoutPage } from "./pages/Checkout";`
   );
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.backend, "packages/backend", projectDir);
   installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
 
@@ -628,9 +622,7 @@ function installAdminDashboard(sailDir: string, projectDir: string): void {
   );
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
 
   // Add env vars
@@ -667,9 +659,7 @@ function installI18n(sailDir: string, projectDir: string): void {
   }
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
 }
 
@@ -1098,9 +1088,7 @@ router.delete("/avatar", async (req, res) => {
   }
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.backend, "packages/backend", projectDir);
   installDeps(manifest.dependencies.frontend, "packages/frontend", projectDir);
 
@@ -1183,9 +1171,7 @@ function installFileUploads(sailDir: string, projectDir: string): void {
   );
 
   // Install dependencies
-  const manifest: SailManifest = JSON.parse(
-    readFileSync(join(sailDir, "addon.json"), "utf-8")
-  );
+  const manifest = loadManifest(sailDir);
   installDeps(manifest.dependencies.backend, "packages/backend", projectDir);
 
   // Generate migrations
@@ -1320,7 +1306,12 @@ export async function installSails(config: ProjectConfig): Promise<void> {
       // Update installed.json in the new project
       const installedPath = join(projectDir, "sails", "installed.json");
       if (existsSync(installedPath)) {
-        const installed = JSON.parse(readFileSync(installedPath, "utf-8"));
+        let installed: { installed: string[] };
+        try {
+          installed = JSON.parse(readFileSync(installedPath, "utf-8"));
+        } catch (parseError) {
+          throw new Error(`Failed to parse ${installedPath}: ${(parseError as Error).message}`);
+        }
         if (!installed.installed.includes(sail)) {
           installed.installed.push(sail);
           writeFileSync(
