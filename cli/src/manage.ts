@@ -65,8 +65,15 @@ interface Registry {
   sails: RegistrySail[];
 }
 
+interface InstalledSailEntry {
+  name: string;
+  version: string;
+  installedAt: string;
+}
+
 interface InstalledJson {
-  installed: string[];
+  version?: number;
+  installed: (string | InstalledSailEntry)[];
 }
 
 interface SailManifest {
@@ -117,6 +124,39 @@ function saveInstalled(data: InstalledJson): void {
 
 function isInsideKeelProject(): boolean {
   return existsSync(getInstalledJsonPath());
+}
+
+/** Normalize installed entries — handles both legacy string[] and new object[] formats. */
+function getInstalledNames(data: InstalledJson): string[] {
+  return data.installed.map((entry) =>
+    typeof entry === "string" ? entry : entry.name
+  );
+}
+
+/** Get the installed version of a sail, or null if not tracked. */
+function getInstalledVersion(data: InstalledJson, sailName: string): string | null {
+  for (const entry of data.installed) {
+    if (typeof entry === "object" && entry.name === sailName) {
+      return entry.version;
+    }
+  }
+  return null;
+}
+
+/** Migrate legacy string[] format to new object[] format. */
+function migrateInstalledJson(data: InstalledJson): InstalledJson {
+  if (data.version === 2) return data;
+  const migrated: InstalledJson = {
+    version: 2,
+    installed: data.installed.map((entry) => {
+      if (typeof entry === "string") {
+        return { name: entry, version: "unknown", installedAt: new Date().toISOString() };
+      }
+      return entry;
+    }),
+  };
+  saveInstalled(migrated);
+  return migrated;
 }
 
 function getSailDir(sailName: string): string {
@@ -243,8 +283,9 @@ async function commandAdd(sailName: string): Promise<void> {
   }
 
   // Check if already installed
-  const installed = loadInstalled();
-  if (installed.installed.includes(sailName)) {
+  const installed = migrateInstalledJson(loadInstalled());
+  const installedNames = getInstalledNames(installed);
+  if (installedNames.includes(sailName)) {
     console.log(
       chalk.yellow(`\n  Sail "${sailName}" is already installed.\n`)
     );
@@ -254,7 +295,7 @@ async function commandAdd(sailName: string): Promise<void> {
   // Check sail compatibility — warn about conflicts with installed sails
   if (registryEntry.conflicts && registryEntry.conflicts.length > 0) {
     const conflicting = registryEntry.conflicts.filter((c) =>
-      installed.installed.includes(c)
+      installedNames.includes(c)
     );
     if (conflicting.length > 0) {
       const conflictNames = conflicting
@@ -278,7 +319,7 @@ async function commandAdd(sailName: string): Promise<void> {
 
   // Check for route collisions with installed sails
   if (registryEntry.routes && registryEntry.routes.length > 0) {
-    for (const installedSailName of installed.installed) {
+    for (const installedSailName of installedNames) {
       const installedEntry = registry.sails.find((s) => s.name === installedSailName);
       if (installedEntry?.routes) {
         const overlapping = registryEntry.routes.filter((r) =>
@@ -298,7 +339,7 @@ async function commandAdd(sailName: string): Promise<void> {
 
   // Check for env var collisions with installed sails
   if (registryEntry.envVars && registryEntry.envVars.length > 0) {
-    for (const installedSailName of installed.installed) {
+    for (const installedSailName of installedNames) {
       const installedEntry = registry.sails.find((s) => s.name === installedSailName);
       if (installedEntry?.envVars) {
         const overlapping = registryEntry.envVars.filter((e) =>
@@ -321,12 +362,16 @@ async function commandAdd(sailName: string): Promise<void> {
     await installSailByName(sailName, sailDir, projectDir);
     spinner.succeed(`  ${registryEntry.displayName} installed successfully`);
 
-    // Update installed.json
-    installed.installed.push(sailName);
+    // Update installed.json with version tracking
+    installed.installed.push({
+      name: sailName,
+      version: registryEntry.version,
+      installedAt: new Date().toISOString(),
+    });
     saveInstalled(installed);
 
     console.log();
-    console.log(chalk.gray("  Updated sails/installed.json"));
+    console.log(chalk.gray(`  Updated sails/installed.json (${sailName}@${registryEntry.version})`));
     console.log();
   } catch (error) {
     spinner.fail(`  Failed to install ${sailName}`);
@@ -338,8 +383,9 @@ async function commandAdd(sailName: string): Promise<void> {
 async function commandRemove(sailName: string): Promise<void> {
   requireKeelProject();
 
-  const installed = loadInstalled();
-  if (!installed.installed.includes(sailName)) {
+  const installed = migrateInstalledJson(loadInstalled());
+  const installedNames = getInstalledNames(installed);
+  if (!installedNames.includes(sailName)) {
     console.error(chalk.red(`\n  Error: Sail "${sailName}" is not installed.`));
     console.error(chalk.gray("  Run 'keel list' to see installed sails.\n"));
     process.exit(1);
@@ -437,7 +483,9 @@ async function commandRemove(sailName: string): Promise<void> {
   }
 
   // Update installed.json
-  installed.installed = installed.installed.filter((s) => s !== sailName);
+  installed.installed = installed.installed.filter((entry) =>
+    typeof entry === "string" ? entry !== sailName : entry.name !== sailName
+  );
   saveInstalled(installed);
 
   console.log();
@@ -445,9 +493,74 @@ async function commandRemove(sailName: string): Promise<void> {
   console.log();
 }
 
+async function commandSailUpdate(sailName?: string): Promise<void> {
+  requireKeelProject();
+
+  const registry = loadRegistry();
+  const installed = migrateInstalledJson(loadInstalled());
+  const installedNames = getInstalledNames(installed);
+
+  console.log();
+  console.log(chalk.bold.blue("  ⛵ Sail Update Check"));
+  console.log();
+
+  // Find sails with available updates
+  const updatable: { name: string; current: string; latest: string; displayName: string }[] = [];
+
+  const sailsToCheck = sailName ? [sailName] : installedNames;
+
+  for (const name of sailsToCheck) {
+    if (!installedNames.includes(name)) {
+      console.log(chalk.red(`  Sail "${name}" is not installed.`));
+      console.log();
+      return;
+    }
+
+    const registryEntry = registry.sails.find((s) => s.name === name);
+    if (!registryEntry) continue;
+
+    const currentVersion = getInstalledVersion(installed, name);
+    if (!currentVersion || currentVersion === "unknown") {
+      updatable.push({ name, current: "unknown", latest: registryEntry.version, displayName: registryEntry.displayName });
+    } else if (currentVersion !== registryEntry.version) {
+      updatable.push({ name, current: currentVersion, latest: registryEntry.version, displayName: registryEntry.displayName });
+    }
+  }
+
+  if (updatable.length === 0) {
+    console.log(chalk.green("  All sails are up to date."));
+    console.log();
+    return;
+  }
+
+  console.log(chalk.bold("  Updates available:"));
+  console.log();
+
+  for (const sail of updatable) {
+    console.log(`    ${sail.displayName.padEnd(24)} ${chalk.yellow(sail.current)} → ${chalk.green(sail.latest)}`);
+  }
+
+  console.log();
+  console.log(chalk.bold("  How to update sails:"));
+  console.log();
+  console.log(chalk.gray("  Sails inject code directly into your project files. To update:"));
+  console.log();
+  console.log(`    1. Review the changelog for the sail in the keel repository`);
+  console.log(`    2. ${chalk.cyan("keel sail remove <name>")}   — remove the old version`);
+  console.log(`    3. ${chalk.cyan("keel sail add <name>")}      — reinstall the latest version`);
+  console.log(`    4. Resolve any conflicts with your custom changes`);
+  console.log();
+  console.log(chalk.gray("  Tip: Commit your changes before updating so you can compare diffs."));
+  console.log();
+
+  // Do not mutate installed versions here — the actual code hasn't been
+  // updated yet. Versions only change when the user reinstalls the sail.
+}
+
 function commandList(): void {
   const registry = loadRegistry();
-  const installed = isInsideKeelProject() ? loadInstalled() : { installed: [] };
+  const installed = isInsideKeelProject() ? migrateInstalledJson(loadInstalled()) : { version: 2, installed: [] };
+  const installedNames = getInstalledNames(installed);
 
   console.log();
   console.log(chalk.bold("  Available sails:"));
@@ -457,12 +570,16 @@ function commandList(): void {
   const maxName = Math.max(...registry.sails.map((a) => a.displayName.length));
 
   for (const sail of registry.sails) {
-    const isInstalled = installed.installed.includes(sail.name);
+    const isInstalled = installedNames.includes(sail.name);
     const isPlanned = sail.status === "planned";
+    const installedVersion = isInstalled ? getInstalledVersion(installed, sail.name) : null;
+    const hasUpdate = isInstalled && installedVersion && installedVersion !== "unknown" && installedVersion !== sail.version;
 
     let status: string;
-    if (isInstalled) {
-      status = chalk.green("installed");
+    if (isInstalled && hasUpdate) {
+      status = chalk.yellow(`installed (${installedVersion} → ${sail.version})`);
+    } else if (isInstalled) {
+      status = chalk.green(`installed${installedVersion && installedVersion !== "unknown" ? ` (${installedVersion})` : ""}`);
     } else if (isPlanned) {
       status = chalk.gray("planned");
     } else {
@@ -557,8 +674,8 @@ function commandInfo(sailName: string): void {
 
   // Check installation status
   if (isInsideKeelProject()) {
-    const installed = loadInstalled();
-    const isInstalled = installed.installed.includes(sailName);
+    const installed = migrateInstalledJson(loadInstalled());
+    const isInstalled = getInstalledNames(installed).includes(sailName);
     console.log();
     console.log(
       `  Status: ${isInstalled ? chalk.green("installed") : chalk.blue("not installed")}`
@@ -689,8 +806,14 @@ async function commandDev(): Promise<void> {
   console.log(chalk.bold.blue("  ⛵ keel dev"));
   console.log();
 
-  // Step 1: Start Docker database if docker-compose exists
-  if (hasDockerCompose()) {
+  // Check if using PGlite (no Docker needed)
+  const envVars = loadEnvFile();
+  const usingPGlite = envVars.DATABASE_URL?.startsWith("pglite://");
+
+  // Step 1: Start Docker database if docker-compose exists (skip for PGlite)
+  if (usingPGlite) {
+    console.log(chalk.green("  ✔ Using PGlite (embedded PostgreSQL) — no Docker needed"));
+  } else if (hasDockerCompose()) {
     if (hasDocker()) {
       startDatabase();
     } else {
@@ -1199,6 +1322,69 @@ function commandDbSeed(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Commands — Deploy
+// ---------------------------------------------------------------------------
+
+function commandDeploy(): void {
+  requireKeelProject();
+
+  console.log();
+  console.log(chalk.bold.blue("  ⛵ keel deploy"));
+  console.log();
+  console.log(chalk.bold("  Choose a deployment target:\n"));
+
+  console.log(chalk.bold("  1. Docker (self-hosted)"));
+  console.log(chalk.gray("     Deploy anywhere that runs Docker — VPS, AWS ECS, DigitalOcean, etc."));
+  console.log();
+  console.log(`     ${chalk.cyan("docker compose -f docker-compose.prod.yml up -d")}`);
+  console.log();
+
+  console.log(chalk.bold("  2. Fly.io"));
+  console.log(chalk.gray("     Global edge deployment with automatic SSL and scaling."));
+  console.log();
+  console.log(`     ${chalk.cyan("fly launch --copy-config")}    ${chalk.gray("# First time")}`);
+  console.log(`     ${chalk.cyan("fly deploy")}                  ${chalk.gray("# Subsequent deploys")}`);
+  console.log(`     ${chalk.cyan("fly secrets set DATABASE_URL=\"postgres://...\"")}  ${chalk.gray("# Set env vars")}`);
+  console.log();
+
+  console.log(chalk.bold("  3. Railway"));
+  console.log(chalk.gray("     One-click deploy from GitHub with built-in PostgreSQL."));
+  console.log();
+  console.log(`     ${chalk.cyan("railway up")}                  ${chalk.gray("# Deploy from CLI")}`);
+  console.log(chalk.gray("     Or connect your GitHub repo at railway.com"));
+  console.log();
+
+  console.log(chalk.bold("  4. Vercel (frontend only)"));
+  console.log(chalk.gray("     Static frontend deployment with edge CDN."));
+  console.log();
+  console.log(`     ${chalk.cyan("vercel --cwd packages/frontend")}`);
+  console.log();
+
+  console.log(chalk.bold("  5. Manual / AWS / GCP"));
+  console.log(chalk.gray("     Use the Dockerfile at packages/backend/Dockerfile"));
+  console.log(chalk.gray("     to build a container image for any platform:"));
+  console.log();
+  console.log(`     ${chalk.cyan("docker build -f packages/backend/Dockerfile -t my-app .")}`);
+  console.log(`     ${chalk.cyan("docker run -p 3005:3005 --env-file .env my-app")}`);
+  console.log();
+
+  console.log(chalk.bold("  Configuration files included:"));
+  console.log(`    ${chalk.green("✔")} packages/backend/Dockerfile     ${chalk.gray("Multi-stage production build")}`);
+  console.log(`    ${chalk.green("✔")} docker-compose.prod.yml         ${chalk.gray("Full-stack self-hosted")}`);
+  console.log(`    ${chalk.green("✔")} fly.toml                        ${chalk.gray("Fly.io config")}`);
+  console.log(`    ${chalk.green("✔")} packages/backend/railway.json   ${chalk.gray("Railway config")}`);
+  console.log(`    ${chalk.green("✔")} packages/frontend/vercel.json   ${chalk.gray("Vercel frontend config")}`);
+  console.log();
+
+  console.log(chalk.bold("  Required environment variables for production:"));
+  console.log(chalk.gray("    DATABASE_URL, BETTER_AUTH_SECRET (32+ chars),"));
+  console.log(chalk.gray("    FRONTEND_URL, BACKEND_URL, RESEND_API_KEY, EMAIL_FROM"));
+  console.log();
+  console.log(chalk.gray("  Run 'keel env' to check your current configuration."));
+  console.log();
+}
+
+// ---------------------------------------------------------------------------
 // Commands — Upgrade
 // ---------------------------------------------------------------------------
 
@@ -1257,7 +1443,8 @@ function commandEnv(): void {
   console.log();
 
   const envVars = loadEnvFile();
-  const installed = loadInstalled();
+  const installed = migrateInstalledJson(loadInstalled());
+  const installedNames = getInstalledNames(installed);
 
   // Define required and optional vars
   const required: string[] = ["DATABASE_URL", "BETTER_AUTH_SECRET"];
@@ -1267,15 +1454,15 @@ function commandEnv(): void {
   ];
 
   // Add sail-specific required vars
-  if (installed.installed.includes("gdpr")) {
+  if (installedNames.includes("gdpr")) {
     required.push("DELETION_CRON_SECRET");
   }
-  if (installed.installed.includes("r2-storage")) {
+  if (installedNames.includes("r2-storage")) {
     required.push("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME", "R2_PUBLIC_URL");
   }
 
   // Add env vars from installed sails
-  for (const sailName of installed.installed) {
+  for (const sailName of installedNames) {
     const manifest = loadSailManifest(sailName);
     if (manifest) {
       for (const envVar of manifest.requiredEnvVars) {
@@ -1337,12 +1524,14 @@ function printUsage(): void {
   console.log(`    ${chalk.cyan("keel start")}                    Start production (build + serve)`);
   console.log(`    ${chalk.cyan("keel doctor")}                   Run project health checks`);
   console.log(`    ${chalk.cyan("keel env")}                      Check environment variables`);
+  console.log(`    ${chalk.cyan("keel deploy")}                   Show deployment guides`);
   console.log(`    ${chalk.cyan("keel upgrade")}                  Check for CLI updates`);
   console.log();
 
   console.log(chalk.bold("  Sails:"));
   console.log(`    ${chalk.cyan("keel sail add <name>")}          Install a sail`);
   console.log(`    ${chalk.cyan("keel sail remove <name>")}       Remove a sail`);
+  console.log(`    ${chalk.cyan("keel sail update [name]")}       Check for sail updates`);
   console.log(`    ${chalk.cyan("keel list")}                     List available sails`);
   console.log(`    ${chalk.cyan("keel info <name>")}              Show sail details`);
   console.log();
@@ -1396,6 +1585,8 @@ async function main(): Promise<void> {
           process.exit(1);
         }
         await commandRemove(sailTarget);
+      } else if (subcommand === "update") {
+        await commandSailUpdate(sailTarget);
       } else {
         printUsage();
       }
@@ -1498,6 +1689,11 @@ async function main(): Promise<void> {
     // -- Env --
     case "env":
       commandEnv();
+      break;
+
+    // -- Deploy --
+    case "deploy":
+      commandDeploy();
       break;
 
     // -- Upgrade --

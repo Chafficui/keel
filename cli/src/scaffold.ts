@@ -229,6 +229,17 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
       replaceInFile(frontendEnvPath, "VITE_APP_NAME=Keel", `VITE_APP_NAME=${config.displayName}`);
     }
 
+    // Replace placeholders in static files (SEO, robots.txt, sitemap)
+    const staticFiles = [
+      join(targetDir, "packages/frontend/public/robots.txt"),
+      join(targetDir, "packages/frontend/public/sitemap.xml"),
+      join(targetDir, "packages/frontend/prerender.ts"),
+    ];
+    for (const filePath of staticFiles) {
+      replaceInFile(filePath, "__APP_NAME__", config.displayName);
+      replaceInFile(filePath, "__FRONTEND_URL__", "http://localhost:5173");
+    }
+
     brandSpinner.succeed("Project customized");
   } catch (error) {
     brandSpinner.fail("Failed to customize project");
@@ -245,6 +256,24 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
   } catch (error) {
     envSpinner.fail("Failed to write environment configuration");
     console.error(chalk.red(`  ${error}`));
+  }
+
+  // -- PGlite data directory --------------------------------------------------
+  // PGlite stores data relative to the backend CWD (packages/backend/)
+  // because `npm run dev -w packages/backend` sets CWD there.
+  if (config.databaseSetup === "pglite") {
+    const dataDir = join(targetDir, "packages", "backend", "data", "pglite");
+    mkdirSync(dataDir, { recursive: true });
+
+    // Add data directories to .gitignore
+    const gitignorePath = join(targetDir, ".gitignore");
+    if (existsSync(gitignorePath)) {
+      let gitignore = readFileSync(gitignorePath, "utf-8");
+      if (!gitignore.includes("**/data/pglite")) {
+        gitignore += "\n# PGlite local database\n**/data/pglite/\n";
+        writeFileSync(gitignorePath, gitignore, "utf-8");
+      }
+    }
   }
 
   // -- Docker-compose --------------------------------------------------------

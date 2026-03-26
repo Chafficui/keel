@@ -14,7 +14,7 @@ A full-stack template repository for creating web + mobile applications. Project
 | Auth | BetterAuth | Drizzle adapter, hybrid cookie/Bearer |
 | Email | Resend + React Email | Templated transactional emails |
 | Database | PostgreSQL + Drizzle ORM | Declarative schema, migration-based |
-| Hosting | Vercel (frontend) + Railway (backend) | Config files included |
+| Hosting | Any (Docker, Fly.io, Railway, Vercel, self-hosted) | Multi-platform configs included |
 
 ## Monorepo Structure
 
@@ -47,7 +47,8 @@ docs/         → Detailed guides
 ```bash
 npx keel create my-app                              # Interactive wizard
 npx keel create my-app --yes                         # All defaults, no prompts
-npx keel create my-app --yes --db=docker             # Specify database
+npx keel create my-app --yes --db=docker             # Specify database (Docker PostgreSQL)
+npx keel create my-app --yes --db=pglite             # Zero-config (embedded PostgreSQL, no Docker)
 npx keel create my-app --yes --db=url --db-url=...   # Custom DB URL
 npx keel create my-app --yes --sails=stripe,google-oauth
 npx keel create my-app --yes --resend-key=re_xxx --email-from=noreply@x.com
@@ -63,6 +64,7 @@ keel start                        # Docker up + migrate + build + production
 ```bash
 keel doctor                       # Health check (Node, Docker, DB, .env, deps)
 keel env                          # Show env var status (set/missing)
+keel deploy                       # Show deployment guides (Docker, Fly.io, Railway, Vercel)
 keel upgrade                      # Check for CLI updates
 ```
 
@@ -78,7 +80,8 @@ keel g route <name>               # Shorthand
 ```bash
 keel sail add <name>              # Install a sail
 keel sail remove <name>           # Remove a sail
-keel list                         # List all sails with status
+keel sail update [name]           # Check for sail updates
+keel list                         # List all sails with status + version info
 keel info <name>                  # Show sail details
 ```
 
@@ -123,10 +126,32 @@ npm run typecheck                 # Type check all packages
 - Vite proxy silently returns 502 if backend isn't ready (no error spam)
 - File: `frontend/src/lib/api.ts`
 
+### Database: PostgreSQL or PGlite
+- **PostgreSQL via Docker** (`--db=docker`): Full PostgreSQL in a Docker container, best for production parity
+- **PGlite** (`--db=pglite`): Embedded PostgreSQL via WASM, zero-config, no Docker needed — ideal for quick starts and AI agents
+- **Custom URL** (`--db=url`): Connect to any PostgreSQL instance
+- PGlite stores data in `./data/pglite/` (gitignored), uses identical SQL dialect as PostgreSQL
+- Detection: `DATABASE_URL` starting with `pglite://` triggers PGlite mode
+- Files: `backend/src/db/index.ts`, `backend/drizzle.config.ts`
+
 ### Dev Mode
 - Emails auto-verify in development (no email sending required)
 - Backend logs emails to console when RESEND_API_KEY is not set
 - `npm run dev` builds shared+email first, then runs frontend+backend concurrently
+
+### Deployment
+- **Docker**: Multi-stage Dockerfile at `packages/backend/Dockerfile`, self-hosted via `docker-compose.prod.yml`
+- **Fly.io**: `fly.toml` config included, deploy with `fly launch --copy-config && fly deploy`
+- **Railway**: `packages/backend/railway.json` config included
+- **Vercel**: `packages/frontend/vercel.json` for frontend static hosting
+- **Any container platform**: Build the Dockerfile for AWS ECS, GCP Cloud Run, DigitalOcean, etc.
+- Run `keel deploy` for platform-specific instructions
+
+### SEO / AI Crawlability
+- Vite prerender plugin generates static HTML for public routes (`/`, `/login`, `/signup`)
+- `robots.txt` allows major AI crawlers (GPTBot, Claude-Web)
+- `sitemap.xml` included for search engine indexing
+- `<noscript>` fallback content for crawlers that don't execute JavaScript
 
 ## Database Schema
 
@@ -155,7 +180,12 @@ Sails are **not** bundled into each project. They are fetched on-demand from the
 
 3. **Removing a sail**: `npx keel sail remove <name>` deletes added files, updates installed.json, prints manual cleanup instructions for modified files.
 
-4. **Listing sails**: `npx keel list` shows all available sails and their install status.
+4. **Updating a sail**: `npx keel sail update [name]` checks installed sail versions against the registry and shows update instructions.
+
+5. **Listing sails**: `npx keel list` shows all available sails with version info and update availability.
+
+### Version tracking
+`sails/installed.json` now tracks version and install timestamp for each sail (v2 format). Legacy string-only entries are auto-migrated.
 
 ### Marker comments
 
