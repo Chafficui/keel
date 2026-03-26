@@ -70,6 +70,15 @@ function getBundledSailsDir(): string {
 // Helpers
 // ---------------------------------------------------------------------------
 
+function loadManifest(sailDir: string): SailManifest {
+  const manifestPath = join(sailDir, "addon.json");
+  try {
+    return JSON.parse(readFileSync(manifestPath, "utf-8"));
+  } catch (error) {
+    throw new Error(`Failed to parse sail manifest at ${manifestPath}: ${(error as Error).message}`);
+  }
+}
+
 /** Tracks manual steps the user needs to do when auto-insertion fails. */
 const manualSteps: string[] = [];
 
@@ -166,6 +175,14 @@ export function insertAtMarker(
       `In ${chalk.bold(relativePath)}, add the following code (near where the marker "${marker}" would be):\n\n${chalk.cyan(code)}\n`
     );
     return false;
+  }
+
+  // Warn if the marker appears more than once — only the first occurrence will be modified
+  const markerCount = content.split(foundMarker).length - 1;
+  if (markerCount > 1) {
+    console.log(
+      chalk.yellow(`    ⚠ Marker "${marker}" appears ${markerCount} times in ${relativePath} — only the first occurrence will be modified`)
+    );
   }
 
   content = content.replace(foundMarker, `${foundMarker}\n${code}`);

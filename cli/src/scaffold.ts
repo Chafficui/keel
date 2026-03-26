@@ -278,9 +278,9 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
 
   // -- Docker-compose --------------------------------------------------------
   if (config.databaseSetup === "docker") {
-    // Template already ships with docker-compose.yml — just confirm it exists
-    if (!existsSync(join(targetDir, "docker-compose.yml"))) {
-      const content = `services:
+    // Template already ships with docker-compose.yml — only write if missing
+    const dockerComposePath = join(targetDir, "docker-compose.yml");
+    const content = `services:
   postgres:
     image: postgres:16-alpine
     environment:
@@ -295,7 +295,11 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
 volumes:
   postgres_data:
 `;
-      writeFileSync(join(targetDir, "docker-compose.yml"), content, "utf-8");
+    try {
+      writeFileSync(dockerComposePath, content, { encoding: "utf-8", flag: "wx" });
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      // File already exists (from template) — nothing to do
     }
   }
 
