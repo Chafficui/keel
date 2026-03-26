@@ -29,7 +29,7 @@ export function useAuth() {
 
       return result.data;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- authClient, isNative, Preferences are module-level constants
+    // authClient, isNative, Preferences are module-level constants — safe to omit from deps
     [],
   );
 
@@ -50,7 +50,7 @@ export function useAuth() {
 
       return result.data;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- authClient, isNative, Preferences are module-level constants
+    // authClient, isNative, Preferences are module-level constants — safe to omit from deps
     [],
   );
 

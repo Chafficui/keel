@@ -17,7 +17,7 @@ export const apiLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later" },
-  keyGenerator: (req) => req.user?.id ?? req.ip || req.socket.remoteAddress || "unknown",
+  keyGenerator: (req) => req.user?.id ?? (req.ip || req.socket.remoteAddress || "unknown"),
 });
 
 // Public endpoints (health, etc.): moderate limit

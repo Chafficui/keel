@@ -84,14 +84,14 @@ export function apiGet<T>(endpoint: string): Promise<T> {
 export function apiPost<T>(endpoint: string, body?: unknown): Promise<T> {
   return apiFetch<T>(endpoint, {
     method: "POST",
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
 }
 
 export function apiPatch<T>(endpoint: string, body?: unknown): Promise<T> {
   return apiFetch<T>(endpoint, {
     method: "PATCH",
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
 }
 
