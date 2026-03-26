@@ -229,6 +229,17 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
       replaceInFile(frontendEnvPath, "VITE_APP_NAME=Keel", `VITE_APP_NAME=${config.displayName}`);
     }
 
+    // Replace placeholders in static files (SEO, robots.txt, sitemap)
+    const staticFiles = [
+      join(targetDir, "packages/frontend/public/robots.txt"),
+      join(targetDir, "packages/frontend/public/sitemap.xml"),
+      join(targetDir, "packages/frontend/prerender.ts"),
+    ];
+    for (const filePath of staticFiles) {
+      replaceInFile(filePath, "__APP_NAME__", config.displayName);
+      // Leave __FRONTEND_URL__ as a placeholder — replaced at deploy time
+    }
+
     brandSpinner.succeed("Project customized");
   } catch (error) {
     brandSpinner.fail("Failed to customize project");
@@ -245,6 +256,22 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
   } catch (error) {
     envSpinner.fail("Failed to write environment configuration");
     console.error(chalk.red(`  ${error}`));
+  }
+
+  // -- PGlite data directory --------------------------------------------------
+  if (config.databaseSetup === "pglite") {
+    const dataDir = join(targetDir, "data", "pglite");
+    mkdirSync(dataDir, { recursive: true });
+
+    // Add data/ to .gitignore
+    const gitignorePath = join(targetDir, ".gitignore");
+    if (existsSync(gitignorePath)) {
+      let gitignore = readFileSync(gitignorePath, "utf-8");
+      if (!gitignore.includes("data/")) {
+        gitignore += "\n# PGlite local database\ndata/\n";
+        writeFileSync(gitignorePath, gitignore, "utf-8");
+      }
+    }
   }
 
   // -- Docker-compose --------------------------------------------------------

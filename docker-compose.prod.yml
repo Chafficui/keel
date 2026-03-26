@@ -1,0 +1,56 @@
+# Production docker-compose for self-hosted deployment
+#
+# Usage:
+#   1. Copy .env.example to .env and fill in production values
+#   2. Run: docker compose -f docker-compose.prod.yml up -d
+#   3. Run migrations: docker compose -f docker-compose.prod.yml exec backend npm run db:migrate -w packages/backend
+#
+# This runs the full stack: PostgreSQL + Backend API
+# Frontend should be deployed to a CDN (Vercel, Cloudflare Pages, Netlify, or nginx)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-keel}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${PORT:-3005}:${PORT:-3005}"
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3005}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-keel}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in .env}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL in .env}
+      BACKEND_URL: ${BACKEND_URL:?Set BACKEND_URL in .env}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@localhost}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${PORT:-3005}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  postgres_data:

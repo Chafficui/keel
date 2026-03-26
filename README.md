@@ -33,7 +33,7 @@
 | **Email** | Resend + React Email — verification, welcome, password reset |
 | **Database** | PostgreSQL + Drizzle ORM (migrations) |
 | **Mobile** | Capacitor 8 — iOS + Android via WebView |
-| **Hosting** | Vercel (frontend) + Railway (backend) |
+| **Hosting** | Docker, Fly.io, Railway, Vercel, or self-hosted |
 
 ## Quick Start
 
@@ -48,6 +48,16 @@ npx keel create my-app
 #   → Email provider (optional)
 #   → Which sails to install
 ```
+
+### Zero-Config Start (no Docker needed)
+
+```bash
+npx keel create my-app --yes --db=pglite
+cd my-app
+keel dev
+```
+
+Uses PGlite (embedded PostgreSQL via WASM) — full PostgreSQL compatibility without Docker.
 
 ### Manual Setup (from this repo)
 
@@ -115,7 +125,18 @@ npm run cap:android       # Open Android project
 ```bash
 npm run build             # Build all packages
 npm run typecheck         # Type-check everything
+keel deploy               # Show deployment guides
 ```
+
+### Deployment Options
+
+| Platform | Config File | Command |
+|----------|------------|---------|
+| Docker (self-hosted) | `docker-compose.prod.yml` | `docker compose -f docker-compose.prod.yml up -d` |
+| Fly.io | `fly.toml` | `fly launch --copy-config && fly deploy` |
+| Railway | `packages/backend/railway.json` | `railway up` |
+| Vercel (frontend) | `packages/frontend/vercel.json` | `vercel --cwd packages/frontend` |
+| Any container host | `packages/backend/Dockerfile` | `docker build -f packages/backend/Dockerfile -t my-app .` |
 
 ## Sails — Extend Your App
 

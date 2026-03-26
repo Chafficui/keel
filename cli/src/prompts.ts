@@ -15,7 +15,7 @@ export interface ProjectConfig {
   projectName: string;
   displayName: string;
   description: string;
-  databaseSetup: "docker" | "url" | "skip";
+  databaseSetup: "docker" | "url" | "pglite" | "skip";
   databaseUrl: string;
   resendApiKey: string;
   emailFrom: string;
@@ -26,7 +26,7 @@ export interface ProjectConfig {
 /** CLI flags parsed from args like --yes, --db=docker, --sails=stripe,google-oauth */
 export interface CreateFlags {
   yes: boolean;
-  db?: "docker" | "url" | "skip";
+  db?: "docker" | "url" | "pglite" | "skip";
   dbUrl?: string;
   resendKey?: string;
   emailFrom?: string;
@@ -83,7 +83,7 @@ export function parseFlags(args: string[]): { projectName?: string; flags: Creat
     if (arg === "--yes" || arg === "-y") {
       flags.yes = true;
     } else if (arg.startsWith("--db=")) {
-      flags.db = arg.slice(5) as "docker" | "url" | "skip";
+      flags.db = arg.slice(5) as "docker" | "url" | "pglite" | "skip";
     } else if (arg.startsWith("--db-url=")) {
       flags.dbUrl = arg.slice(9);
       flags.db = "url";
@@ -145,10 +145,11 @@ export async function runPrompts(
   } else if (flags.yes) {
     databaseSetup = "docker";
   } else {
-    databaseSetup = await select<"docker" | "url" | "skip">({
+    databaseSetup = await select<"docker" | "url" | "pglite" | "skip">({
       message: "Database:",
       choices: [
-        { name: "Docker (recommended)", value: "docker" },
+        { name: "Docker (recommended for production parity)", value: "docker" },
+        { name: "PGlite (zero-config, no Docker needed)", value: "pglite" },
         { name: "Custom PostgreSQL URL", value: "url" },
         { name: "Skip (configure later)", value: "skip" },
       ],
@@ -158,6 +159,8 @@ export async function runPrompts(
 
   if (databaseSetup === "docker") {
     databaseUrl = `postgresql://postgres:postgres@localhost:5432/${projectName.replace(/-/g, "_")}`;
+  } else if (databaseSetup === "pglite") {
+    databaseUrl = "pglite://./data/pglite";
   } else if (databaseSetup === "url") {
     if (flags.dbUrl) {
       databaseUrl = flags.dbUrl;
@@ -217,7 +220,8 @@ export async function runPrompts(
   // -- Summary ---------------------------------------------------------------
   console.log();
   console.log(`  ${displayName}`);
-  console.log(`  Database: ${databaseSetup === "docker" ? "Docker" : databaseSetup === "url" ? "Custom URL" : "Later"}  |  Email: ${resendApiKey ? "Configured" : "Later"}  |  Sails: ${sails.length > 0 ? sails.join(", ") : "none"}`);
+  const dbLabel = databaseSetup === "docker" ? "Docker" : databaseSetup === "pglite" ? "PGlite (zero-config)" : databaseSetup === "url" ? "Custom URL" : "Later";
+  console.log(`  Database: ${dbLabel}  |  Email: ${resendApiKey ? "Configured" : "Later"}  |  Sails: ${sails.length > 0 ? sails.join(", ") : "none"}`);
   console.log();
 
   return {

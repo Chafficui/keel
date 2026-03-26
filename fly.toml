@@ -1,0 +1,47 @@
+# Fly.io deployment configuration for keel backend
+# Deploy with: fly launch --copy-config
+#
+# Prerequisites:
+#   1. Install flyctl: https://fly.io/docs/flyctl/install/
+#   2. Run: fly auth login
+#   3. Run: fly launch --copy-config
+#   4. Set secrets:
+#      fly secrets set DATABASE_URL="postgres://..." \
+#        BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+#        FRONTEND_URL="https://your-frontend.vercel.app" \
+#        BACKEND_URL="https://your-app.fly.dev" \
+#        RESEND_API_KEY="re_..." \
+#        EMAIL_FROM="noreply@yourdomain.com"
+#   5. Run: fly deploy
+
+app = "keel-app"
+primary_region = "iad"
+
+[build]
+  dockerfile = "packages/backend/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3005"
+
+[http_service]
+  internal_port = 3005
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 200
+    soft_limit = 150
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  path = "/api/health"
+  timeout = "5s"
+
+[deploy]
+  release_command = "node packages/backend/dist/index.js --migrate-only || true"
