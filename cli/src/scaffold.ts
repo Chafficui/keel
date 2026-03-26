@@ -237,7 +237,7 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
     ];
     for (const filePath of staticFiles) {
       replaceInFile(filePath, "__APP_NAME__", config.displayName);
-      // Leave __FRONTEND_URL__ as a placeholder — replaced at deploy time
+      replaceInFile(filePath, "__FRONTEND_URL__", "http://localhost:5173");
     }
 
     brandSpinner.succeed("Project customized");
@@ -259,16 +259,18 @@ Copy \`.env.example\` to \`.env\` and fill in the values. See \`keel env\` to ch
   }
 
   // -- PGlite data directory --------------------------------------------------
+  // PGlite stores data relative to the backend CWD (packages/backend/)
+  // because `npm run dev -w packages/backend` sets CWD there.
   if (config.databaseSetup === "pglite") {
-    const dataDir = join(targetDir, "data", "pglite");
+    const dataDir = join(targetDir, "packages", "backend", "data", "pglite");
     mkdirSync(dataDir, { recursive: true });
 
-    // Add data/ to .gitignore
+    // Add data directories to .gitignore
     const gitignorePath = join(targetDir, ".gitignore");
     if (existsSync(gitignorePath)) {
       let gitignore = readFileSync(gitignorePath, "utf-8");
-      if (!gitignore.includes("data/")) {
-        gitignore += "\n# PGlite local database\ndata/\n";
+      if (!gitignore.includes("**/data/pglite")) {
+        gitignore += "\n# PGlite local database\n**/data/pglite/\n";
         writeFileSync(gitignorePath, gitignore, "utf-8");
       }
     }

@@ -3,7 +3,7 @@
 # Usage:
 #   1. Copy .env.example to .env and fill in production values
 #   2. Run: docker compose -f docker-compose.prod.yml up -d
-#   3. Run migrations: docker compose -f docker-compose.prod.yml exec backend npm run db:migrate -w packages/backend
+#   3. Run migrations: docker compose -f docker-compose.prod.yml exec backend node packages/backend/dist/db/migrate.js
 #
 # This runs the full stack: PostgreSQL + Backend API
 # Frontend should be deployed to a CDN (Vercel, Cloudflare Pages, Netlify, or nginx)

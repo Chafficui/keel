@@ -553,19 +553,8 @@ async function commandSailUpdate(sailName?: string): Promise<void> {
   console.log(chalk.gray("  Tip: Commit your changes before updating so you can compare diffs."));
   console.log();
 
-  // Update version tracking even without reinstall (user acknowledges awareness)
-  for (const sail of updatable) {
-    if (sail.current === "unknown") {
-      // Just record the version — don't force a reinstall for migration
-      const entry = installed.installed.find((e) =>
-        typeof e === "object" && e.name === sail.name
-      );
-      if (entry && typeof entry === "object") {
-        entry.version = sail.latest;
-      }
-    }
-  }
-  saveInstalled(installed);
+  // Do not mutate installed versions here — the actual code hasn't been
+  // updated yet. Versions only change when the user reinstalls the sail.
 }
 
 function commandList(): void {

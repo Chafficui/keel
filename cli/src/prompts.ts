@@ -137,7 +137,7 @@ export async function runPrompts(
   const description = `${displayName} — built with keel`;
 
   // -- 2. Database -----------------------------------------------------------
-  let databaseSetup: "docker" | "url" | "skip";
+  let databaseSetup: "docker" | "url" | "pglite" | "skip";
   let databaseUrl = "";
 
   if (flags.db) {

@@ -36,8 +36,9 @@ export function prerenderPlugin(): Plugin {
         const indexHtml = readFileSync(join(outDir, "index.html"), "utf-8");
 
         for (const route of PRERENDER_ROUTES) {
-          // Create directory for the route
-          const routeDir = route === "/" ? outDir : join(outDir, route);
+          // Strip leading slash to avoid join() treating it as absolute path
+          const routeSegment = route.replace(/^\/+/, "");
+          const routeDir = route === "/" ? outDir : join(outDir, routeSegment);
           const htmlPath = route === "/" ? join(outDir, "index.html") : join(routeDir, "index.html");
 
           if (route !== "/") {

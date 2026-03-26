@@ -44,4 +44,4 @@ primary_region = "iad"
   timeout = "5s"
 
 [deploy]
-  release_command = "node packages/backend/dist/index.js --migrate-only || true"
+  release_command = "node packages/backend/dist/db/migrate.js"
