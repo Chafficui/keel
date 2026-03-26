@@ -12,11 +12,18 @@ import {
 } from "@react-email/components";
 import type * as React from "react";
 
+function sanitizeUrl(url: string): string {
+  const lower = url.toLowerCase().trim();
+  if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "#";
+  return url;
+}
+
 interface PasswordResetEmailProps {
   resetUrl: string;
 }
 
-export function PasswordResetEmail({ resetUrl }: PasswordResetEmailProps) {
+export function PasswordResetEmail({ resetUrl: rawResetUrl }: PasswordResetEmailProps) {
+  const resetUrl = sanitizeUrl(rawResetUrl);
   return (
     <Html>
       <Head />

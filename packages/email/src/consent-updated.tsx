@@ -12,6 +12,12 @@ import {
 } from "@react-email/components";
 import type * as React from "react";
 
+function sanitizeUrl(url: string): string {
+  const lower = url.toLowerCase().trim();
+  if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "#";
+  return url;
+}
+
 interface ConsentChange {
   type: string;
   action: "granted" | "revoked";
@@ -26,8 +32,9 @@ interface ConsentUpdatedEmailProps {
 export function ConsentUpdatedEmail({
   userName,
   changes,
-  baseUrl = "http://localhost:5173",
+  baseUrl: rawBaseUrl = "http://localhost:5173",
 }: ConsentUpdatedEmailProps) {
+  const baseUrl = sanitizeUrl(rawBaseUrl);
   return (
     <Html>
       <Head />

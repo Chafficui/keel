@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "dev": "email dev --port 3010",
+    "dev": "react-email dev --port 3010",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

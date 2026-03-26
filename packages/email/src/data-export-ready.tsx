@@ -12,6 +12,12 @@ import {
 } from "@react-email/components";
 import type * as React from "react";
 
+function sanitizeUrl(url: string): string {
+  const lower = url.toLowerCase().trim();
+  if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "#";
+  return url;
+}
+
 interface DataExportReadyEmailProps {
   userName: string;
   downloadUrl: string;
@@ -20,9 +26,10 @@ interface DataExportReadyEmailProps {
 
 export function DataExportReadyEmail({
   userName,
-  downloadUrl,
+  downloadUrl: rawDownloadUrl,
   expiresIn,
 }: DataExportReadyEmailProps) {
+  const downloadUrl = sanitizeUrl(rawDownloadUrl);
   return (
     <Html>
       <Head />

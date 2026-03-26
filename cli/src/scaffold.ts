@@ -15,7 +15,7 @@ import {
   rmSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
-import { execSync, execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import degit from "degit";
@@ -98,19 +98,19 @@ export async function scaffold(config: ProjectConfig): Promise<boolean> {
   // -- Clone template --------------------------------------------------------
   const cloneSpinner = ora("Cloning template...").start();
 
-  if (existsSync(targetDir)) {
-    cloneSpinner.fail(`Directory already exists: ${config.projectName}`);
-    return false;
-  }
-
   try {
     let cloned = false;
     try {
       const emitter = degit(TEMPLATE_REPO, { cache: false, force: true, verbose: false });
       await emitter.clone(targetDir);
       cloned = true;
-    } catch {
+    } catch (degitError: unknown) {
       // degit failed (private repo) — fall back to git clone
+      // But first check if the directory was created by a concurrent process
+      if (existsSync(targetDir)) {
+        cloneSpinner.fail(`Directory already exists: ${config.projectName}`);
+        return false;
+      }
     }
 
     if (!cloned) {
@@ -303,10 +303,12 @@ volumes:
   const installSpinner = ora("Installing dependencies (this may take a minute)...").start();
 
   try {
-    execSync("npm install", { cwd: targetDir, stdio: "pipe", timeout: 300_000 });
+    execFileSync("npm", ["install"], { cwd: targetDir, stdio: "pipe", timeout: 300_000 });
     installSpinner.succeed("Dependencies installed");
-  } catch {
+  } catch (error) {
     installSpinner.fail("Failed to install dependencies");
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(chalk.yellow(`  ${msg}`));
     console.error(chalk.yellow("  Run 'npm install' manually in the project directory."));
   }
 
@@ -314,15 +316,16 @@ volumes:
   const gitSpinner = ora("Initializing git repository...").start();
 
   try {
-    execSync("git init", { cwd: targetDir, stdio: "pipe" });
-    execSync("git add -A", { cwd: targetDir, stdio: "pipe" });
-    execSync('git commit -m "Initial commit from create-keel"', {
+    execFileSync("git", ["init"], { cwd: targetDir, stdio: "pipe" });
+    execFileSync("git", ["add", "-A"], { cwd: targetDir, stdio: "pipe" });
+    execFileSync("git", ["commit", "-m", "Initial commit from create-keel"], {
       cwd: targetDir,
       stdio: "pipe",
     });
     gitSpinner.succeed("Git repository initialized");
-  } catch {
-    gitSpinner.warn("Could not initialize git. Run 'git init' manually.");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    gitSpinner.warn(`Could not initialize git: ${msg}`);
   }
 
   return true;

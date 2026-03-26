@@ -12,6 +12,12 @@ import {
 } from "@react-email/components";
 import type * as React from "react";
 
+function sanitizeUrl(url: string): string {
+  const lower = url.toLowerCase().trim();
+  if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "#";
+  return url;
+}
+
 interface AccountDeletionCancelledEmailProps {
   userName: string;
   dashboardUrl: string;
@@ -19,8 +25,9 @@ interface AccountDeletionCancelledEmailProps {
 
 export function AccountDeletionCancelledEmail({
   userName,
-  dashboardUrl,
+  dashboardUrl: rawDashboardUrl,
 }: AccountDeletionCancelledEmailProps) {
+  const dashboardUrl = sanitizeUrl(rawDashboardUrl);
   return (
     <Html>
       <Head />

@@ -12,11 +12,18 @@ import {
 } from "@react-email/components";
 import type * as React from "react";
 
+function sanitizeUrl(url: string): string {
+  const lower = url.toLowerCase().trim();
+  if (lower.startsWith("javascript:") || lower.startsWith("data:")) return "#";
+  return url;
+}
+
 interface VerificationEmailProps {
   verificationUrl: string;
 }
 
-export function VerificationEmail({ verificationUrl }: VerificationEmailProps) {
+export function VerificationEmail({ verificationUrl: rawVerificationUrl }: VerificationEmailProps) {
+  const verificationUrl = sanitizeUrl(rawVerificationUrl);
   return (
     <Html>
       <Head />
