@@ -1,6 +1,6 @@
 {
   "name": "@codaijs/keel",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "CLI tool for keel (a codai project): create projects and manage sails",
   "repository": {

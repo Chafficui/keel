@@ -214,8 +214,9 @@ function installDeps(
   }
 
   const packageList = entries.map(([name, version]) => `${name}@${version}`);
-  execFileSync(NPM_CMD, ["install", ...packageList, `--workspace=${workspace}`], {
-    cwd,
+  const workspaceDir = join(cwd, workspace);
+  execFileSync(NPM_CMD, ["install", ...packageList], {
+    cwd: workspaceDir,
     stdio: "pipe",
     shell: IS_WIN,
   });
