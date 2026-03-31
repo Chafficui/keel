@@ -35,8 +35,9 @@ import { installSailByName } from "./sail-installer.js";
 // Platform helpers
 // ---------------------------------------------------------------------------
 
-/** On Windows, bare "npm" must be invoked as "npm.cmd" for spawn/execFileSync. */
-const NPM_CMD = process.platform === "win32" ? "npm.cmd" : "npm";
+/** On Windows, child_process needs shell:true to run .cmd scripts like npm. */
+const IS_WIN = process.platform === "win32";
+const NPM_CMD = IS_WIN ? "npm.cmd" : "npm";
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -731,7 +732,7 @@ function runSync(cmd: string, label: string): boolean {
   const spinner = ora(`  ${label}...`).start();
   try {
     const [bin, ...args] = cmd.split(" ");
-    execFileSync(bin!, args, { cwd: process.cwd(), stdio: "pipe" });
+    execFileSync(bin!, args, { cwd: process.cwd(), stdio: "pipe", shell: IS_WIN });
     spinner.succeed(`  ${label}`);
     return true;
   } catch {
@@ -791,7 +792,8 @@ function replaceProcess(cmd: string, args: string[]): void {
   const child = spawn(cmd, args, {
     cwd: process.cwd(),
     stdio: "inherit",
-    detached: true,
+    shell: IS_WIN,
+    detached: !IS_WIN,
   });
 
   // Prevent the parent ref from keeping Node alive after child exits
@@ -807,7 +809,12 @@ function replaceProcess(cmd: string, args: string[]): void {
   function killTree(signal: NodeJS.Signals): void {
     if (child.pid) {
       try {
-        process.kill(-child.pid, signal);
+        if (IS_WIN) {
+          // Windows: use taskkill to kill the process tree
+          execFileSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+        } else {
+          process.kill(-child.pid, signal);
+        }
       } catch {
         // Process group may already be gone
         child.kill(signal);
@@ -923,7 +930,7 @@ async function commandDoctor(): Promise<void> {
 
   // npm version
   try {
-    const npmVersion = execFileSync(NPM_CMD, ["--version"], { stdio: "pipe" }).toString().trim();
+    const npmVersion = execFileSync(NPM_CMD, ["--version"], { stdio: "pipe", shell: IS_WIN }).toString().trim();
     pass(`npm ${npmVersion}`);
   } catch {
     fail("npm — not found");
@@ -1441,7 +1448,7 @@ async function commandUpgrade(): Promise<void> {
 
   // Check latest version
   try {
-    const latest = execFileSync(NPM_CMD, ["view", "@codaijs/keel", "version"], { stdio: "pipe" }).toString().trim();
+    const latest = execFileSync(NPM_CMD, ["view", "@codaijs/keel", "version"], { stdio: "pipe", shell: IS_WIN }).toString().trim();
     console.log(`  Latest version:  ${chalk.cyan(latest)}`);
   } catch {
     console.log(chalk.gray("  Could not check latest version."));

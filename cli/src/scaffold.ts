@@ -20,8 +20,9 @@ import chalk from "chalk";
 import ora from "ora";
 import degit from "degit";
 
-/** On Windows, bare "npm" must be invoked as "npm.cmd" for spawn/execFileSync. */
-const NPM_CMD = process.platform === "win32" ? "npm.cmd" : "npm";
+/** On Windows, child_process needs shell:true to run .cmd scripts like npm. */
+const IS_WIN = process.platform === "win32";
+const NPM_CMD = IS_WIN ? "npm.cmd" : "npm";
 import type { ProjectConfig } from "./prompts.js";
 
 const TEMPLATE_REPO = "Chafficui/keel";
@@ -310,7 +311,7 @@ volumes:
   const installSpinner = ora("Installing dependencies (this may take a minute)...").start();
 
   try {
-    execFileSync(NPM_CMD, ["install"], { cwd: targetDir, stdio: "pipe", timeout: 300_000 });
+    execFileSync(NPM_CMD, ["install"], { cwd: targetDir, stdio: "pipe", timeout: 300_000, shell: IS_WIN });
     installSpinner.succeed("Dependencies installed");
   } catch (error) {
     installSpinner.fail("Failed to install dependencies");
