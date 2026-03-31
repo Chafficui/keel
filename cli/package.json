@@ -7,6 +7,24 @@
     "type": "git",
     "url": "https://github.com/Chafficui/keel.git"
   },
+  "license": "MIT",
+  "keywords": [
+    "cli",
+    "template",
+    "framework",
+    "fullstack",
+    "ai",
+    "react",
+    "express",
+    "typescript",
+    "capacitor",
+    "mobile",
+    "boilerplate"
+  ],
+  "bugs": {
+    "url": "https://github.com/Chafficui/keel/issues"
+  },
+  "homepage": "https://keel.codai.app",
   "publishConfig": {
     "access": "public"
   },
