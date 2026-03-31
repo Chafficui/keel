@@ -722,7 +722,7 @@ function runSync(cmd: string, label: string): boolean {
   const spinner = ora(`  ${label}...`).start();
   try {
     const [bin, ...args] = cmd.split(" ");
-    execFileSync(bin, args, { cwd: process.cwd(), stdio: "pipe" });
+    execFileSync(bin!, args, { cwd: process.cwd(), stdio: "pipe" });
     spinner.succeed(`  ${label}`);
     return true;
   } catch {
@@ -833,7 +833,7 @@ async function commandDev(): Promise<void> {
 
   // Check if using PGlite (no Docker needed)
   const envVars = loadEnvFile();
-  const usingPGlite = envVars.DATABASE_URL?.startsWith("pglite://");
+  const usingPGlite = envVars["DATABASE_URL"]?.startsWith("pglite://");
 
   // Step 1: Start Docker database if docker-compose exists (skip for PGlite)
   if (usingPGlite) {
@@ -905,7 +905,7 @@ async function commandDoctor(): Promise<void> {
 
   // Node.js version
   const nodeVersion = process.version;
-  const nodeMajor = parseInt(nodeVersion.slice(1).split(".")[0], 10);
+  const nodeMajor = parseInt(nodeVersion.slice(1).split(".")[0]!, 10);
   if (nodeMajor >= 22) {
     pass(`Node.js ${nodeVersion}`);
   } else {
@@ -935,19 +935,20 @@ async function commandDoctor(): Promise<void> {
 
   // PostgreSQL reachable via DATABASE_URL
   const envVars = loadEnvFile();
-  if (envVars.DATABASE_URL) {
+  const dbUrl = envVars["DATABASE_URL"];
+  if (dbUrl) {
     try {
       execFileSync("node", [
         "-e",
         `const { Client } = require('pg'); const c = new Client(process.env.DATABASE_URL); c.connect().then(() => { c.end(); process.exit(0); }).catch(() => process.exit(1))`,
-      ], { stdio: "pipe", timeout: 5000, env: { ...process.env, DATABASE_URL: envVars.DATABASE_URL } });
+      ], { stdio: "pipe", timeout: 5000, env: { ...process.env, DATABASE_URL: dbUrl } });
       pass("PostgreSQL is reachable");
     } catch {
       // Try a simpler check — see if psql is available via Docker
       try {
         execFileSync("docker", [
           "exec", "-i",
-          execFileSync("docker", ["ps", "-q", "--filter", "ancestor=postgres"], { stdio: "pipe", timeout: 5000 }).toString().trim().split("\n")[0],
+          execFileSync("docker", ["ps", "-q", "--filter", "ancestor=postgres"], { stdio: "pipe", timeout: 5000 }).toString().trim().split("\n")[0]!,
           "pg_isready",
         ], { stdio: "pipe", timeout: 5000 });
         pass("PostgreSQL is reachable (via Docker)");
@@ -967,13 +968,13 @@ async function commandDoctor(): Promise<void> {
     fail(".env file not found");
   }
 
-  if (envVars.DATABASE_URL) {
+  if (envVars["DATABASE_URL"]) {
     pass("DATABASE_URL is set");
   } else {
     fail("DATABASE_URL is missing");
   }
 
-  if (envVars.BETTER_AUTH_SECRET) {
+  if (envVars["BETTER_AUTH_SECRET"]) {
     pass("BETTER_AUTH_SECRET is set");
   } else {
     fail("BETTER_AUTH_SECRET is missing");
@@ -1288,7 +1289,7 @@ async function commandDbReset(): Promise<void> {
         const envContent = readFileSync(envPath, "utf-8");
         const dbUrlMatch = envContent.match(/^DATABASE_URL\s*=\s*(.+)$/m);
         if (dbUrlMatch) {
-          const dbUrl = dbUrlMatch[1].replace(/^["']|["']$/g, "");
+          const dbUrl = dbUrlMatch[1]!.replace(/^["']|["']$/g, "");
           const parsed = new URL(dbUrl);
           const pathName = parsed.pathname.replace(/^\//, "");
           if (pathName) dbName = pathName;

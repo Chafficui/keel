@@ -123,7 +123,7 @@ export async function runPrompts(
     const rawName = await input({
       message: "Project name:",
       default: "my-app",
-      validate: (value) => {
+      validate: (value: string) => {
         if (!value || value.trim().length === 0) return "Project name is required.";
         if (/[^a-zA-Z0-9-_]/.test(value.trim()))
           return "Only letters, numbers, hyphens, and underscores.";
@@ -167,7 +167,7 @@ export async function runPrompts(
     } else if (!flags.yes) {
       databaseUrl = await input({
         message: "PostgreSQL URL:",
-        validate: (value) => {
+        validate: (value: string) => {
           if (!value || value.trim().length === 0) return "Database URL is required.";
           if (!value.startsWith("postgresql://") && !value.startsWith("postgres://"))
             return "URL should start with postgresql:// or postgres://";
@@ -191,7 +191,7 @@ export async function runPrompts(
       emailFrom = await input({
         message: "Email FROM address:",
         default: "noreply@example.com",
-        validate: (value) => {
+        validate: (value: string) => {
           if (!value || !value.includes("@")) return "Enter a valid email address.";
           return true;
         },

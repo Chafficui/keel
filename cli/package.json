@@ -1,11 +1,11 @@
 {
   "name": "@codaijs/keel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "CLI tool for keel (a codai project): create projects and manage sails",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Chafficui/keel.git"
+    "url": "git+https://github.com/Chafficui/keel.git"
   },
   "license": "MIT",
   "keywords": [
@@ -29,8 +29,8 @@
     "access": "public"
   },
   "bin": {
-    "create-keel": "./dist/create.js",
-    "keel": "./dist/manage.js"
+    "create-keel": "dist/create.js",
+    "keel": "dist/manage.js"
   },
   "files": [
     "dist",

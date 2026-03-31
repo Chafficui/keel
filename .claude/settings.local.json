@@ -33,7 +33,13 @@
       "Bash(for f:*)",
       "Bash(do sed:*)",
       "Bash(echo \"Updated $f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(xargs sed:*)",
+      "Bash(npm org:*)",
+      "Bash(npm access:*)",
+      "Bash(npm run:*)",
+      "Bash(npm publish:*)",
+      "Bash(npm pkg:*)"
     ]
   }
 }
