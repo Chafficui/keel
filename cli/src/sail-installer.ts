@@ -26,6 +26,9 @@ import chalk from "chalk";
 import ora from "ora";
 import type { ProjectConfig } from "./prompts.js";
 
+/** On Windows, bare "npm" must be invoked as "npm.cmd" for spawn/execFileSync. */
+const NPM_CMD = process.platform === "win32" ? "npm.cmd" : "npm";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -210,7 +213,7 @@ function installDeps(
   }
 
   const packageList = entries.map(([name, version]) => `${name}@${version}`);
-  execFileSync("npm", ["install", ...packageList, `--workspace=${workspace}`], {
+  execFileSync(NPM_CMD, ["install", ...packageList, `--workspace=${workspace}`], {
     cwd,
     stdio: "pipe",
   });

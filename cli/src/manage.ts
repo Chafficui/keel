@@ -32,6 +32,13 @@ import { confirm } from "@inquirer/prompts";
 import { installSailByName } from "./sail-installer.js";
 
 // ---------------------------------------------------------------------------
+// Platform helpers
+// ---------------------------------------------------------------------------
+
+/** On Windows, bare "npm" must be invoked as "npm.cmd" for spawn/execFileSync. */
+const NPM_CMD = process.platform === "win32" ? "npm.cmd" : "npm";
+
+// ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
 
@@ -172,7 +179,9 @@ function getSailDir(sailName: string): string {
     throw new Error(`Invalid sail name: "${sailName}" — must not contain ".", "/", or "\\".`);
   }
   const resolved = resolve(BUNDLED_SAILS_DIR, sailName);
-  if (!resolved.startsWith(BUNDLED_SAILS_DIR + "/") && resolved !== BUNDLED_SAILS_DIR) {
+  const normalizedResolved = resolved.replace(/\\/g, "/");
+  const normalizedBase = BUNDLED_SAILS_DIR.replace(/\\/g, "/");
+  if (!normalizedResolved.startsWith(normalizedBase + "/") && normalizedResolved !== normalizedBase) {
     throw new Error(`Invalid sail name: "${sailName}" — resolved path escapes sails directory.`);
   }
   return resolved;
@@ -854,7 +863,7 @@ async function commandDev(): Promise<void> {
   console.log();
   console.log(chalk.bold("  Starting dev servers...\n"));
 
-  replaceProcess("npm", ["run", "dev"]);
+  replaceProcess(NPM_CMD, ["run", "dev"]);
 }
 
 async function commandStart(): Promise<void> {
@@ -914,7 +923,7 @@ async function commandDoctor(): Promise<void> {
 
   // npm version
   try {
-    const npmVersion = execFileSync("npm", ["--version"], { stdio: "pipe" }).toString().trim();
+    const npmVersion = execFileSync(NPM_CMD, ["--version"], { stdio: "pipe" }).toString().trim();
     pass(`npm ${npmVersion}`);
   } catch {
     fail("npm — not found");
@@ -1324,7 +1333,7 @@ function commandDbStudio(): void {
   console.log(chalk.bold.blue("  ⛵ Opening Drizzle Studio..."));
   console.log();
 
-  replaceProcess("npm", ["run", "db:studio"]);
+  replaceProcess(NPM_CMD, ["run", "db:studio"]);
 }
 
 function commandDbSeed(): void {
@@ -1432,7 +1441,7 @@ async function commandUpgrade(): Promise<void> {
 
   // Check latest version
   try {
-    const latest = execFileSync("npm", ["view", "keel", "version"], { stdio: "pipe" }).toString().trim();
+    const latest = execFileSync(NPM_CMD, ["view", "@codaijs/keel", "version"], { stdio: "pipe" }).toString().trim();
     console.log(`  Latest version:  ${chalk.cyan(latest)}`);
   } catch {
     console.log(chalk.gray("  Could not check latest version."));
