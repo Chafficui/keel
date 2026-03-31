@@ -81,7 +81,7 @@ npx tsx cli/sails/r2-storage/install.ts
 Or use the CLI:
 
 ```bash
-npx @codai/keel sail add r2-storage
+npx @codaijs/keel sail add r2-storage
 ```
 
 ## Upload flow

@@ -2,7 +2,7 @@
 
 ## What is this?
 
-A full-stack template repository for creating web + mobile applications. Projects are created via `npx @codai/keel create my-project`. The template includes authentication, email templates, database, and native mobile support out of the box. Additional features (GDPR, Stripe, Google OAuth, file storage) are added via the sail system.
+A full-stack template repository for creating web + mobile applications. Projects are created via `npx @codaijs/keel create my-project`. The template includes authentication, email templates, database, and native mobile support out of the box. Additional features (GDPR, Stripe, Google OAuth, file storage) are added via the sail system.
 
 ## Tech Stack
 
@@ -45,13 +45,13 @@ docs/         → Detailed guides
 
 ### Project Creation
 ```bash
-npx @codai/keel create my-app                              # Interactive wizard
-npx @codai/keel create my-app --yes                         # All defaults, no prompts
-npx @codai/keel create my-app --yes --db=docker             # Specify database (Docker PostgreSQL)
-npx @codai/keel create my-app --yes --db=pglite             # Zero-config (embedded PostgreSQL, no Docker)
-npx @codai/keel create my-app --yes --db=url --db-url=...   # Custom DB URL
-npx @codai/keel create my-app --yes --sails=stripe,google-oauth
-npx @codai/keel create my-app --yes --resend-key=re_xxx --email-from=noreply@x.com
+npx @codaijs/keel create my-app                              # Interactive wizard
+npx @codaijs/keel create my-app --yes                         # All defaults, no prompts
+npx @codaijs/keel create my-app --yes --db=docker             # Specify database (Docker PostgreSQL)
+npx @codaijs/keel create my-app --yes --db=pglite             # Zero-config (embedded PostgreSQL, no Docker)
+npx @codaijs/keel create my-app --yes --db=url --db-url=...   # Custom DB URL
+npx @codaijs/keel create my-app --yes --sails=stripe,google-oauth
+npx @codaijs/keel create my-app --yes --resend-key=re_xxx --email-from=noreply@x.com
 ```
 
 ### Development
@@ -169,20 +169,20 @@ Sails are **not** bundled into each project. They are fetched on-demand from the
 
 ### How it works
 
-1. **Project creation**: `npx @codai/keel create my-project` scaffolds a clean project with NO sail code, just marker comments and `sails/installed.json`.
+1. **Project creation**: `npx @codaijs/keel create my-project` scaffolds a clean project with NO sail code, just marker comments and `sails/installed.json`.
 
 2. **Installing a sail**: From inside a project:
    ```bash
-   npx @codai/keel sail add google-oauth
+   npx @codaijs/keel sail add google-oauth
    ```
    Copies files, inserts code at markers, installs deps, updates `sails/installed.json`.
    If a marker is missing (user modified the file), prints manual instructions instead of failing.
 
-3. **Removing a sail**: `npx @codai/keel sail remove <name>` deletes added files, updates installed.json, prints manual cleanup instructions for modified files.
+3. **Removing a sail**: `npx @codaijs/keel sail remove <name>` deletes added files, updates installed.json, prints manual cleanup instructions for modified files.
 
-4. **Updating a sail**: `npx @codai/keel sail update [name]` checks installed sail versions against the registry and shows update instructions.
+4. **Updating a sail**: `npx @codaijs/keel sail update [name]` checks installed sail versions against the registry and shows update instructions.
 
-5. **Listing sails**: `npx @codai/keel list` shows all available sails with version info and update availability.
+5. **Listing sails**: `npx @codaijs/keel list` shows all available sails with version info and update availability.
 
 ### Version tracking
 `sails/installed.json` now tracks version and install timestamp for each sail (v2 format). Legacy string-only entries are auto-migrated.

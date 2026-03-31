@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://keel.codai.app">Website</a> · <a href="https://keel.codai.app">Docs</a> · <a href="https://www.npmjs.com/package/@codai/keel">npm</a>
+  <a href="https://keel.codai.app">Website</a> · <a href="https://keel.codai.app">Docs</a> · <a href="https://www.npmjs.com/package/@codaijs/keel">npm</a>
 </p>
 
 <p align="center">
@@ -49,7 +49,7 @@ Every generated project includes `CLAUDE.md`, `.cursor/rules`, `.github/copilot-
 
 ```bash
 # Create a new project
-npx @codai/keel create my-app
+npx @codaijs/keel create my-app
 
 # Follow the setup wizard — it configures everything:
 #   → Project name & branding
@@ -62,7 +62,7 @@ npx @codai/keel create my-app
 ### Zero-Config Start (no Docker needed)
 
 ```bash
-npx @codai/keel create my-app --yes --db=pglite
+npx @codaijs/keel create my-app --yes --db=pglite
 cd my-app
 keel dev
 ```
@@ -154,13 +154,13 @@ Sails are optional packages that add functionality to your Keel project. They're
 
 ```bash
 # List available sails
-npx @codai/keel list
+npx @codaijs/keel list
 
 # Install a sail (runs interactive setup wizard)
-npx @codai/keel sail add google-oauth
+npx @codaijs/keel sail add google-oauth
 
 # Get info about a sail before installing
-npx @codai/keel info stripe
+npx @codaijs/keel info stripe
 ```
 
 ### Available Sails

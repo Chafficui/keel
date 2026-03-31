@@ -29,21 +29,21 @@ sails/        — Installed sail extensions (see installed.json)
 
 ### Adding an API Route
 ```bash
-npx @codai/keel generate route myroute
+npx @codaijs/keel generate route myroute
 ```
 This creates the route file AND auto-mounts it in index.ts. Ready at `/api/myroute`.
 Add request/response types to `packages/shared/src/types/` and Zod validators to `packages/shared/src/validators/` as needed.
 
 ### Adding a Frontend Page
 ```bash
-npx @codai/keel generate page my-page
+npx @codaijs/keel generate page my-page
 ```
 This creates the page component AND adds the route to router.tsx. Ready at `/my-page`.
 If the page should be protected, manually wrap with `<ProtectedRoute>` in router.tsx.
 
 ### Adding an Email Template
 ```bash
-npx @codai/keel generate email my-email
+npx @codaijs/keel generate email my-email
 ```
 This creates the React Email template AND exports it from index.ts.
 
@@ -54,9 +54,9 @@ This creates the React Email template AND exports it from index.ts.
 
 ### Installing a Sail (add-on)
 ```bash
-npx @codai/keel sail add stripe
-npx @codai/keel sail add google-oauth
-npx @codai/keel list                    # see all available sails
+npx @codaijs/keel sail add stripe
+npx @codaijs/keel sail add google-oauth
+npx @codaijs/keel list                    # see all available sails
 ```
 Do NOT manually copy sail code. Always use the CLI.
 

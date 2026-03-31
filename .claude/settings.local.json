@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:keel.codai.app)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(npm audit:*)",
+      "Bash(git -C /c/Users/felix/Documents/Coding/keel diff --stat)",
+      "Bash(git -C /c/Users/felix/Documents/Coding/keel status)",
+      "Bash(git -C /c/Users/felix/Documents/Coding/keel log --oneline -5)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm install:*)",
+      "Bash(git rebase:*)",
+      "Bash(where gh:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "Read(//c/Program Files/GitHub CLI/**)",
+      "Read(//c/Program Files \\(x86\\)/GitHub CLI/**)",
+      "Bash(cmd.exe /c \"where gh\")",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/Chafficui/keel/dependabot/alerts --jq '.[] | select\\(.state==\"\"open\"\"\\) | {number, severity: .security_advisory.severity, package: .security_vulnerability.package.name, summary: .security_advisory.summary, manifest: .dependency.manifest_path}')",
+      "Bash(xargs ls:*)",
+      "Bash(wc -l docs/*.md)",
+      "Bash(find . -maxdepth 2 -iname LICENSE* -o -iname license*)",
+      "Bash(/tmp/release_audit.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo view Chafficui/keel --json isPrivate,visibility,defaultBranchRef)",
+      "Bash(npm whoami:*)",
+      "Bash(npm view:*)",
+      "Bash(for f:*)",
+      "Bash(do sed:*)",
+      "Bash(echo \"Updated $f\")",
+      "Bash(done)"
+    ]
+  }
+}

@@ -48,7 +48,7 @@ npx tsx cli/sails/file-uploads/install.ts
 Or use the CLI:
 
 ```bash
-npx @codai/keel sail add file-uploads
+npx @codaijs/keel sail add file-uploads
 ```
 
 The installer will guide you through:

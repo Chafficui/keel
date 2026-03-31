@@ -15,10 +15,10 @@
 
 ## IMPORTANT: Use keel CLI for scaffolding
 ALWAYS use these commands instead of manually creating files:
-- npx @codai/keel generate route <name>  — creates route + auto-mounts in index.ts
-- npx @codai/keel generate page <name>   — creates page + auto-adds to router.tsx
-- npx @codai/keel generate email <name>  — creates template + auto-exports
-- npx @codai/keel sail add <name>        — installs sail extension
+- npx @codaijs/keel generate route <name>  — creates route + auto-mounts in index.ts
+- npx @codaijs/keel generate page <name>   — creates page + auto-adds to router.tsx
+- npx @codaijs/keel generate email <name>  — creates template + auto-exports
+- npx @codaijs/keel sail add <name>        — installs sail extension
 - npm run check                   — verify all changes (typecheck + lint + test)
 
 ## Adding a Database Table
