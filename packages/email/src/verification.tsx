@@ -37,8 +37,8 @@ export function VerificationEmail({ verificationUrl: rawVerificationUrl }: Verif
             </Heading>
 
             <Text style={paragraph}>
-              Thanks for signing up! Please verify your email address by
-              clicking the button below. This helps us keep your account secure.
+              Thanks for signing up! Please verify your email address by clicking the button below.
+              This helps us keep your account secure.
             </Text>
 
             <Section style={buttonSection}>
@@ -48,8 +48,7 @@ export function VerificationEmail({ verificationUrl: rawVerificationUrl }: Verif
             </Section>
 
             <Text style={secondaryText}>
-              If the button doesn&apos;t work, copy and paste this link into
-              your browser:
+              If the button doesn&apos;t work, copy and paste this link into your browser:
             </Text>
             <Text style={linkText}>{verificationUrl}</Text>
           </Section>

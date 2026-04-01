@@ -4,34 +4,34 @@ import { auth } from "../auth/index.js";
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: string;
-        name: string;
-        email: string;
-        emailVerified: boolean;
-        image: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      } | undefined;
-      session?: {
-        id: string;
-        userId: string;
-        token: string;
-        expiresAt: Date;
-        ipAddress: string | null;
-        userAgent: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      } | undefined;
+      user?:
+        | {
+            id: string;
+            name: string;
+            email: string;
+            emailVerified: boolean;
+            image: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+          }
+        | undefined;
+      session?:
+        | {
+            id: string;
+            userId: string;
+            token: string;
+            expiresAt: Date;
+            ipAddress: string | null;
+            userAgent: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+          }
+        | undefined;
     }
   }
 }
 
-export async function requireAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     // Check Bearer token first (for Capacitor/mobile), then cookie
     const headers = new Headers();

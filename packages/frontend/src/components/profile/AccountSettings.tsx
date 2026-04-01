@@ -27,9 +27,7 @@ export default function AccountSettings() {
         setLoadState("loaded");
       } catch (err) {
         setLoadState("error");
-        setErrorMessage(
-          err instanceof Error ? err.message : "Failed to load sessions.",
-        );
+        setErrorMessage(err instanceof Error ? err.message : "Failed to load sessions.");
       }
     }
 
@@ -43,9 +41,7 @@ export default function AccountSettings() {
 
       {/* Active Sessions */}
       <div className="rounded-xl border border-keel-gray-800 bg-keel-gray-900 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          Active Sessions
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">Active Sessions</h2>
 
         {loadState === "loading" && (
           <div className="flex items-center gap-3 py-4">
@@ -70,14 +66,11 @@ export default function AccountSettings() {
               <div key={session.id} className="flex items-center justify-between py-3">
                 <div>
                   <p className="text-sm font-medium text-keel-gray-100">
-                    {session.userAgent
-                      ? session.userAgent.substring(0, 60)
-                      : "Unknown device"}
+                    {session.userAgent ? session.userAgent.substring(0, 60) : "Unknown device"}
                   </p>
                   <p className="text-xs text-keel-gray-400">
                     {session.ipAddress && `${session.ipAddress} - `}
-                    Created{" "}
-                    {new Date(session.createdAt).toLocaleDateString()}
+                    Created {new Date(session.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>

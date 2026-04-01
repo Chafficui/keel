@@ -13,9 +13,7 @@ describe("capacitor detection", () => {
       },
     }));
 
-    const { isNative, platform, isWeb, isIOS, isAndroid } = await import(
-      "../lib/capacitor.js"
-    );
+    const { isNative, platform, isWeb, isIOS, isAndroid } = await import("../lib/capacitor.js");
 
     expect(isNative).toBe(false);
     expect(platform).toBe("web");
@@ -32,9 +30,7 @@ describe("capacitor detection", () => {
       },
     }));
 
-    const { isNative, platform, isWeb, isIOS, isAndroid } = await import(
-      "../lib/capacitor.js"
-    );
+    const { isNative, platform, isWeb, isIOS, isAndroid } = await import("../lib/capacitor.js");
 
     expect(isNative).toBe(true);
     expect(platform).toBe("ios");
@@ -51,9 +47,7 @@ describe("capacitor detection", () => {
       },
     }));
 
-    const { isNative, platform, isWeb, isIOS, isAndroid } = await import(
-      "../lib/capacitor.js"
-    );
+    const { isNative, platform, isWeb, isIOS, isAndroid } = await import("../lib/capacitor.js");
 
     expect(isNative).toBe(true);
     expect(platform).toBe("android");

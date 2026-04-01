@@ -132,14 +132,19 @@ describe("LoginForm", () => {
     fireEvent.click(submitButtons[0]!);
 
     await vi.waitFor(() => {
-      expect(screen.getByText("An unexpected error occurred. Please try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("An unexpected error occurred. Please try again."),
+      ).toBeInTheDocument();
     });
   });
 
   it("shows submitting state during login", async () => {
     let resolveLogin: () => void;
     mockLogin.mockImplementation(
-      () => new Promise<void>((resolve) => { resolveLogin = resolve; }),
+      () =>
+        new Promise<void>((resolve) => {
+          resolveLogin = resolve;
+        }),
     );
     renderLoginForm();
 

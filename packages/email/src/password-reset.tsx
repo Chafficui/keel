@@ -37,8 +37,8 @@ export function PasswordResetEmail({ resetUrl: rawResetUrl }: PasswordResetEmail
             </Heading>
 
             <Text style={paragraph}>
-              We received a request to reset the password for your account.
-              Click the button below to choose a new password.
+              We received a request to reset the password for your account. Click the button below
+              to choose a new password.
             </Text>
 
             <Section style={buttonSection}>
@@ -48,21 +48,20 @@ export function PasswordResetEmail({ resetUrl: rawResetUrl }: PasswordResetEmail
             </Section>
 
             <Text style={secondaryText}>
-              If the button doesn&apos;t work, copy and paste this link into
-              your browser:
+              If the button doesn&apos;t work, copy and paste this link into your browser:
             </Text>
             <Text style={linkText}>{resetUrl}</Text>
 
             <Section style={warningSection}>
               <Text style={warningText}>
-                This link expires in 1 hour. After that, you&apos;ll need to
-                request a new password reset.
+                This link expires in 1 hour. After that, you&apos;ll need to request a new password
+                reset.
               </Text>
             </Section>
 
             <Text style={ignoreText}>
-              If you didn&apos;t request this, you can safely ignore this email.
-              Your password will remain unchanged.
+              If you didn&apos;t request this, you can safely ignore this email. Your password will
+              remain unchanged.
             </Text>
           </Section>
 

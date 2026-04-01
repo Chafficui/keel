@@ -34,12 +34,7 @@ export default function ProtectedRoute() {
   }
 
   if (timedOut || !isAuthenticated) {
-    return (
-      <Navigate
-        to={`/login?returnUrl=${encodeURIComponent(location.pathname)}`}
-        replace
-      />
-    );
+    return <Navigate to={`/login?returnUrl=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
   return <Outlet />;

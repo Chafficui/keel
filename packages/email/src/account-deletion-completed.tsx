@@ -41,14 +41,11 @@ export function AccountDeletionCompletedEmail({
             </Heading>
 
             <Text style={paragraph}>
-              Hi {userName}, this is to confirm that your account and all
-              associated data have been permanently deleted from our systems in
-              compliance with GDPR regulations.
+              Hi {userName}, this is to confirm that your account and all associated data have been
+              permanently deleted from our systems in compliance with GDPR regulations.
             </Text>
 
-            <Text style={paragraph}>
-              The following data has been removed:
-            </Text>
+            <Text style={paragraph}>The following data has been removed:</Text>
 
             <Text style={listItem}>&bull; Your profile and personal information</Text>
             <Text style={listItem}>&bull; All session and authentication data</Text>
@@ -56,8 +53,8 @@ export function AccountDeletionCompletedEmail({
             <Text style={listItem}>&bull; All activity and usage history</Text>
 
             <Text style={paragraph}>
-              We&apos;re sorry to see you go. If you ever wish to return, you
-              are welcome to create a new account at any time.
+              We&apos;re sorry to see you go. If you ever wish to return, you are welcome to create
+              a new account at any time.
             </Text>
 
             <Section style={buttonSection}>

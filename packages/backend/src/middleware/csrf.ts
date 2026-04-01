@@ -11,11 +11,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
  * BetterAuth handles its own CSRF protection, so this middleware should
  * only be applied to custom API routes.
  */
-export function csrfProtection(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
   // Allow safe (read-only) methods
   if (SAFE_METHODS.has(req.method)) {
     next();

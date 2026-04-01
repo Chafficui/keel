@@ -2,16 +2,10 @@ import { Resend } from "resend";
 import { env } from "../env.js";
 import { logger } from "../lib/logger.js";
 
-export const resend = env.RESEND_API_KEY
-  ? new Resend(env.RESEND_API_KEY)
-  : null;
+export const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
 /** Send an email via Resend, or log to console in dev if no API key is set */
-export async function sendEmail(options: {
-  to: string;
-  subject: string;
-  html: string;
-}) {
+export async function sendEmail(options: { to: string; subject: string; html: string }) {
   if (!resend) {
     logger.debug(
       { to: options.to, subject: options.subject },

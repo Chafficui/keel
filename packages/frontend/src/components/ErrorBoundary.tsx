@@ -52,12 +52,10 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-white">
-              Something went wrong
-            </h1>
+            <h1 className="text-2xl font-bold text-white">Something went wrong</h1>
             <p className="mt-3 text-sm leading-relaxed text-keel-gray-400">
-              An unexpected error occurred. Please try reloading the page. If
-              the problem persists, contact support.
+              An unexpected error occurred. Please try reloading the page. If the problem persists,
+              contact support.
             </p>
             {import.meta.env.DEV && this.state.error && (
               <pre className="mt-4 max-h-40 overflow-auto rounded-lg border border-keel-gray-800 bg-keel-gray-900 p-4 text-left text-xs text-red-400">

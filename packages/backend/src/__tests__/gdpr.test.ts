@@ -14,10 +14,7 @@ const projectRoot = join(__dirname, "..", "..", "..", "..");
 describe("GDPR routes", () => {
   describe("hardcoded URL detection", () => {
     it("has no hardcoded keel.com URLs in GDPR service", () => {
-      const gdprServicePath = join(
-        projectRoot,
-        "cli/sails/gdpr/files/backend/services/gdpr.ts",
-      );
+      const gdprServicePath = join(projectRoot, "cli/sails/gdpr/files/backend/services/gdpr.ts");
 
       let content: string;
       try {
@@ -28,8 +25,7 @@ describe("GDPR routes", () => {
       }
 
       // Verify no hardcoded production URLs remain
-      const hardcodedUrls =
-        content.match(/https?:\/\/keel\.com\b[^\s"]*/g) ?? [];
+      const hardcodedUrls = content.match(/https?:\/\/keel\.com\b[^\s"]*/g) ?? [];
 
       expect(hardcodedUrls.length).toBe(0);
     });
@@ -46,12 +42,7 @@ describe("GDPR routes", () => {
     });
 
     it("accepts valid consent types", () => {
-      for (const type of [
-        "privacy_policy",
-        "terms_of_service",
-        "marketing_emails",
-        "analytics",
-      ]) {
+      for (const type of ["privacy_policy", "terms_of_service", "marketing_emails", "analytics"]) {
         const result = consentInputSchema.safeParse({
           consentType: type,
           granted: true,
@@ -98,28 +89,14 @@ describe("GDPR routes", () => {
         "utf-8",
       );
 
-      expect(content).toContain(
-        "export async function exportUserData(userId: string)",
-      );
-      expect(content).toContain(
-        "export async function requestDeletion(userId: string",
-      );
-      expect(content).toContain(
-        "export async function cancelDeletion(userId: string)",
-      );
-      expect(content).toContain(
-        "export async function processPendingDeletions()",
-      );
+      expect(content).toContain("export async function exportUserData(userId: string)");
+      expect(content).toContain("export async function requestDeletion(userId: string");
+      expect(content).toContain("export async function cancelDeletion(userId: string)");
+      expect(content).toContain("export async function processPendingDeletions()");
       expect(content).toContain("export async function recordConsent(");
-      expect(content).toContain(
-        "export async function revokeConsent(userId: string",
-      );
-      expect(content).toContain(
-        "export async function getUserConsents(userId: string)",
-      );
-      expect(content).toContain(
-        "export async function immediatelyDeleteUser(userId: string)",
-      );
+      expect(content).toContain("export async function revokeConsent(userId: string");
+      expect(content).toContain("export async function getUserConsents(userId: string)");
+      expect(content).toContain("export async function immediatelyDeleteUser(userId: string)");
     });
   });
 
@@ -144,9 +121,7 @@ describe("GDPR routes", () => {
       expect(content).toContain("router.use(requireAuth)");
 
       // Verify process-deletions is before auth middleware (cron access)
-      const processDeletionsIndex = content.indexOf(
-        'router.post("/process-deletions"',
-      );
+      const processDeletionsIndex = content.indexOf('router.post("/process-deletions"');
       const requireAuthIndex = content.indexOf("router.use(requireAuth)");
       expect(processDeletionsIndex).toBeLessThan(requireAuthIndex);
     });

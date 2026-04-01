@@ -16,9 +16,7 @@ vi.mock("@capacitor/preferences", () => ({
   },
 }));
 
-const { ApiError, apiFetch, apiGet, apiPost, apiPatch, apiDelete } = await import(
-  "../lib/api.js"
-);
+const { ApiError, apiFetch, apiGet, apiPost, apiPatch, apiDelete } = await import("../lib/api.js");
 
 describe("ApiError", () => {
   it("has correct properties", () => {
@@ -58,12 +56,15 @@ describe("apiFetch", () => {
 
     const result = await apiFetch("/api/profile");
 
-    expect(fetch).toHaveBeenCalledWith("/api/profile", expect.objectContaining({
-      credentials: "include",
-      headers: expect.objectContaining({
-        "Content-Type": "application/json",
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/profile",
+      expect.objectContaining({
+        credentials: "include",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+        }),
       }),
-    }));
+    );
     expect(result).toEqual(mockResponse);
   });
 
@@ -123,10 +124,13 @@ describe("apiFetch", () => {
       body: JSON.stringify({ key: "value" }),
     });
 
-    expect(fetch).toHaveBeenCalledWith("/api/test", expect.objectContaining({
-      method: "POST",
-      body: JSON.stringify({ key: "value" }),
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ key: "value" }),
+      }),
+    );
   });
 });
 
@@ -144,9 +148,12 @@ describe("convenience methods", () => {
 
     await apiGet("/api/test");
 
-    expect(fetch).toHaveBeenCalledWith("/api/test", expect.objectContaining({
-      method: "GET",
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test",
+      expect.objectContaining({
+        method: "GET",
+      }),
+    );
   });
 
   it("apiPost sends POST request with body", async () => {
@@ -158,10 +165,13 @@ describe("convenience methods", () => {
 
     await apiPost("/api/test", { name: "test" });
 
-    expect(fetch).toHaveBeenCalledWith("/api/test", expect.objectContaining({
-      method: "POST",
-      body: JSON.stringify({ name: "test" }),
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ name: "test" }),
+      }),
+    );
   });
 
   it("apiPost sends POST without body", async () => {
@@ -173,9 +183,12 @@ describe("convenience methods", () => {
 
     await apiPost("/api/test");
 
-    expect(fetch).toHaveBeenCalledWith("/api/test", expect.objectContaining({
-      method: "POST",
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test",
+      expect.objectContaining({
+        method: "POST",
+      }),
+    );
   });
 
   it("apiPatch sends PATCH request with body", async () => {
@@ -187,10 +200,13 @@ describe("convenience methods", () => {
 
     await apiPatch("/api/test", { name: "updated" });
 
-    expect(fetch).toHaveBeenCalledWith("/api/test", expect.objectContaining({
-      method: "PATCH",
-      body: JSON.stringify({ name: "updated" }),
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ name: "updated" }),
+      }),
+    );
   });
 
   it("apiDelete sends DELETE request", async () => {
@@ -202,8 +218,11 @@ describe("convenience methods", () => {
 
     await apiDelete("/api/test");
 
-    expect(fetch).toHaveBeenCalledWith("/api/test", expect.objectContaining({
-      method: "DELETE",
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/test",
+      expect.objectContaining({
+        method: "DELETE",
+      }),
+    );
   });
 });

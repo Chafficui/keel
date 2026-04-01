@@ -9,12 +9,7 @@ export function useDeepLinks() {
   useEffect(() => {
     if (!isNative) return;
 
-    const allowedDeepLinkPaths = [
-      "/verify-email",
-      "/reset-password",
-      "/login",
-      "/signup",
-    ];
+    const allowedDeepLinkPaths = ["/verify-email", "/reset-password", "/login", "/signup"];
 
     const handleUrlOpen = (event: URLOpenListenerEvent) => {
       try {
@@ -23,9 +18,7 @@ export function useDeepLinks() {
 
         const isAllowed = allowedDeepLinkPaths.some(
           (allowed) =>
-            path === allowed ||
-            path.startsWith(allowed + "?") ||
-            path.startsWith(allowed + "/"),
+            path === allowed || path.startsWith(allowed + "?") || path.startsWith(allowed + "/"),
         );
 
         if (isAllowed) {

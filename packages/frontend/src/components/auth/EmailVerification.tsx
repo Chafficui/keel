@@ -60,9 +60,7 @@ export default function EmailVerification() {
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-keel-gray-800 border-t-keel-blue" />
             <div>
-              <h2 className="text-xl font-bold text-white">
-                Verifying your email
-              </h2>
+              <h2 className="text-xl font-bold text-white">Verifying your email</h2>
               <p className="mt-1 text-sm text-keel-gray-400">
                 Please wait while we verify your email address...
               </p>
@@ -87,9 +85,7 @@ export default function EmailVerification() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              Email verified
-            </h2>
+            <h2 className="text-xl font-bold text-white">Email verified</h2>
             <p className="mt-2 text-sm text-keel-gray-400">
               Your email has been successfully verified. Redirecting to login...
             </p>
@@ -119,9 +115,7 @@ export default function EmailVerification() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              Verification failed
-            </h2>
+            <h2 className="text-xl font-bold text-white">Verification failed</h2>
             <p className="mt-2 text-sm text-keel-gray-400">{errorMessage}</p>
             <Link
               to="/login"

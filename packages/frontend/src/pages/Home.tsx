@@ -25,13 +25,12 @@ export default function Home() {
         </a>
 
         <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Ship with{" "}
-          <span className="text-keel-blue">confidence.</span>
+          Ship with <span className="text-keel-blue">confidence.</span>
         </h1>
 
         <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-keel-gray-400">
-          Auth, payments, storage, GDPR compliance, and native mobile — all
-          wired up and ready to go. Define your structure, then build.
+          Auth, payments, storage, GDPR compliance, and native mobile — all wired up and ready to
+          go. Define your structure, then build.
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -41,12 +40,7 @@ export default function Home() {
               className="inline-flex items-center rounded-lg bg-keel-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-keel-blue/90"
             >
               Go to Dashboard
-              <svg
-                className="ml-2 h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -62,12 +56,7 @@ export default function Home() {
                 className="inline-flex items-center rounded-lg bg-keel-blue px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-keel-blue/90"
               >
                 Get Started
-                <svg
-                  className="ml-2 h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

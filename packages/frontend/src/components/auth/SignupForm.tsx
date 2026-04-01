@@ -49,9 +49,7 @@ export default function SignupForm() {
 
       setSuccess(true);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Signup failed. Please try again.",
-      );
+      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -77,13 +75,11 @@ export default function SignupForm() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              Check your email
-            </h2>
+            <h2 className="text-xl font-bold text-white">Check your email</h2>
             <p className="mt-2 text-sm text-keel-gray-400">
               We&apos;ve sent a verification link to{" "}
-              <span className="font-medium text-white">{email}</span>.
-              Please check your inbox and verify your email address.
+              <span className="font-medium text-white">{email}</span>. Please check your inbox and
+              verify your email address.
             </p>
             <Link
               to="/login"
@@ -101,12 +97,8 @@ export default function SignupForm() {
     <div className="mx-auto w-full max-w-md">
       <div className="rounded-xl border border-keel-gray-800 bg-keel-gray-900 p-8">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-white">
-            Create your account
-          </h1>
-          <p className="mt-1 text-sm text-keel-gray-400">
-            Get started with keel
-          </p>
+          <h1 className="text-2xl font-bold text-white">Create your account</h1>
+          <p className="mt-1 text-sm text-keel-gray-400">Get started with keel</p>
         </div>
 
         {error && (
@@ -117,10 +109,7 @@ export default function SignupForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="name"
-              className="mb-1.5 block text-sm font-medium text-keel-gray-400"
-            >
+            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-keel-gray-400">
               Full name
             </label>
             <input
@@ -136,10 +125,7 @@ export default function SignupForm() {
           </div>
 
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-sm font-medium text-keel-gray-400"
-            >
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-keel-gray-400">
               Email
             </label>
             <input
@@ -208,14 +194,11 @@ export default function SignupForm() {
           </button>
         </form>
 
-            {/* [SAIL_SOCIAL_BUTTONS] */}
+        {/* [SAIL_SOCIAL_BUTTONS] */}
 
         <p className="mt-6 text-center text-sm text-keel-gray-400">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="font-medium text-keel-blue hover:text-keel-blue/80"
-          >
+          <Link to="/login" className="font-medium text-keel-blue hover:text-keel-blue/80">
             Log in
           </Link>
         </p>

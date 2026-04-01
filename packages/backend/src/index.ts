@@ -18,17 +18,19 @@ const app = express();
 app.set("trust proxy", 1);
 
 // Security headers
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", env.BACKEND_URL, env.FRONTEND_URL],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", env.BACKEND_URL, env.FRONTEND_URL],
+      },
     },
-  },
-}));
+  }),
+);
 
 // CORS
 app.use(corsMiddleware);
@@ -56,11 +58,13 @@ app.use("/api/{*splat}", (_req, res) => {
 });
 
 // Global error handler
-app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  logger.error(err, "Unhandled error");
-  const message = env.NODE_ENV === "production" ? "Internal server error" : String(err);
-  res.status(500).json({ error: message });
-});
+app.use(
+  (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    logger.error(err, "Unhandled error");
+    const message = env.NODE_ENV === "production" ? "Internal server error" : String(err);
+    res.status(500).json({ error: message });
+  },
+);
 
 try {
   await db.execute(sql`SELECT 1`);
@@ -71,10 +75,7 @@ try {
 }
 
 const server = app.listen(env.PORT, () => {
-  logger.info(
-    { port: env.PORT, env: env.NODE_ENV },
-    "Server started",
-  );
+  logger.info({ port: env.PORT, env: env.NODE_ENV }, "Server started");
 });
 
 // Graceful shutdown

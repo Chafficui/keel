@@ -29,11 +29,6 @@ describe("health route", () => {
 // ---------------------------------------------------------------------------
 
 // Mock the database module
-const mockUpdate = vi.fn();
-const mockSet = vi.fn();
-const mockWhere = vi.fn();
-const mockReturning = vi.fn();
-
 vi.mock("../db/index.js", () => ({
   db: {
     execute: vi.fn().mockResolvedValue([{ "?column?": 1 }]),
@@ -41,15 +36,18 @@ vi.mock("../db/index.js", () => ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
       set: (data: any) => ({
         where: () => ({
-          returning: () => Promise.resolve([{
-            id: "user-1",
-            name: data.name ?? "Test User",
-            email: "test@example.com",
-            emailVerified: true,
-            image: data.image ?? null,
-            createdAt: new Date("2024-01-01"),
-            updatedAt: new Date(),
-          }]),
+          returning: () =>
+            Promise.resolve([
+              {
+                id: "user-1",
+                name: data.name ?? "Test User",
+                email: "test@example.com",
+                emailVerified: true,
+                image: data.image ?? null,
+                createdAt: new Date("2024-01-01"),
+                updatedAt: new Date(),
+              },
+            ]),
         }),
       }),
     }),
@@ -192,7 +190,7 @@ async function makeRequest(
     headers?: Record<string, string>;
     body?: unknown;
   } = {},
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper returns dynamic response shapes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper returns dynamic response shapes
 ): Promise<{ status: number; body: any }> {
   return new Promise((resolve) => {
     const server = app.listen(0, () => {

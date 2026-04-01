@@ -7,17 +7,11 @@ import { z } from "zod";
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3005),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   BACKEND_URL: z.string().url().default("http://localhost:3005"),
   FRONTEND_URL: z.string().url().default("http://localhost:5173"),
-  DATABASE_URL: z
-    .string()
-    .default("postgresql://postgres:postgres@localhost:5432/keel"),
-  BETTER_AUTH_SECRET: z
-    .string()
-    .default("dev-secret-change-me-in-production"),
+  DATABASE_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/keel"),
+  BETTER_AUTH_SECRET: z.string().default("dev-secret-change-me-in-production"),
   RESEND_API_KEY: z.string().default(""),
   EMAIL_FROM: z.string().default("noreply@localhost"),
 });
@@ -31,12 +25,8 @@ describe("env schema", () => {
       expect(result.data.NODE_ENV).toBe("development");
       expect(result.data.BACKEND_URL).toBe("http://localhost:3005");
       expect(result.data.FRONTEND_URL).toBe("http://localhost:5173");
-      expect(result.data.DATABASE_URL).toBe(
-        "postgresql://postgres:postgres@localhost:5432/keel"
-      );
-      expect(result.data.BETTER_AUTH_SECRET).toBe(
-        "dev-secret-change-me-in-production"
-      );
+      expect(result.data.DATABASE_URL).toBe("postgresql://postgres:postgres@localhost:5432/keel");
+      expect(result.data.BETTER_AUTH_SECRET).toBe("dev-secret-change-me-in-production");
       expect(result.data.RESEND_API_KEY).toBe("");
       expect(result.data.EMAIL_FROM).toBe("noreply@localhost");
     }

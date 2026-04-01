@@ -41,14 +41,13 @@ export function AccountDeletionCancelledEmail({
             </Heading>
 
             <Text style={paragraph}>
-              Hi {userName}, good news! Your account deletion request has been
-              successfully cancelled. Your account is safe and all your data
-              remains intact.
+              Hi {userName}, good news! Your account deletion request has been successfully
+              cancelled. Your account is safe and all your data remains intact.
             </Text>
 
             <Text style={paragraph}>
-              You can continue using your account as usual. No further action is
-              needed on your part.
+              You can continue using your account as usual. No further action is needed on your
+              part.
             </Text>
 
             <Section style={buttonSection}>
@@ -58,8 +57,7 @@ export function AccountDeletionCancelledEmail({
             </Section>
 
             <Text style={secondaryText}>
-              If you did not cancel this request, please contact our support
-              team immediately.
+              If you did not cancel this request, please contact our support team immediately.
             </Text>
           </Section>
 

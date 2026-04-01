@@ -18,10 +18,12 @@ const { requireAuth } = await import("../middleware/auth.js");
 // Helpers
 // ---------------------------------------------------------------------------
 
-function createMockRequest(overrides: Partial<{
-  headers: Record<string, string | undefined>;
+function createMockRequest(
+  overrides: Partial<{
+    headers: Record<string, string | undefined>;
+  }> = {},
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mocks are partial implementations
-}> = {}): any {
+): any {
   return {
     headers: overrides.headers ?? {},
   };
@@ -99,8 +101,25 @@ describe("requireAuth middleware", () => {
 
   it("forwards Authorization header (Bearer token) for Capacitor", async () => {
     const mockSession = {
-      user: { id: "user-1", name: "Test", email: "t@t.com", emailVerified: true, image: null, createdAt: new Date(), updatedAt: new Date() },
-      session: { id: "s-1", userId: "user-1", token: "tok", expiresAt: new Date(Date.now() + 86400000), ipAddress: null, userAgent: null, createdAt: new Date(), updatedAt: new Date() },
+      user: {
+        id: "user-1",
+        name: "Test",
+        email: "t@t.com",
+        emailVerified: true,
+        image: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      session: {
+        id: "s-1",
+        userId: "user-1",
+        token: "tok",
+        expiresAt: new Date(Date.now() + 86400000),
+        ipAddress: null,
+        userAgent: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     };
     mockGetSession.mockResolvedValue(mockSession);
 
@@ -124,8 +143,25 @@ describe("requireAuth middleware", () => {
 
   it("forwards cookie header as fallback", async () => {
     mockGetSession.mockResolvedValue({
-      user: { id: "u1", name: "U", email: "u@u.com", emailVerified: true, image: null, createdAt: new Date(), updatedAt: new Date() },
-      session: { id: "s1", userId: "u1", token: "t", expiresAt: new Date(Date.now() + 86400000), ipAddress: null, userAgent: null, createdAt: new Date(), updatedAt: new Date() },
+      user: {
+        id: "u1",
+        name: "U",
+        email: "u@u.com",
+        emailVerified: true,
+        image: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      session: {
+        id: "s1",
+        userId: "u1",
+        token: "t",
+        expiresAt: new Date(Date.now() + 86400000),
+        ipAddress: null,
+        userAgent: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     });
 
     const req = createMockRequest({
@@ -159,8 +195,25 @@ describe("requireAuth middleware", () => {
 
   it("handles request with both Bearer and cookie headers", async () => {
     mockGetSession.mockResolvedValue({
-      user: { id: "u1", name: "U", email: "u@u.com", emailVerified: true, image: null, createdAt: new Date(), updatedAt: new Date() },
-      session: { id: "s1", userId: "u1", token: "t", expiresAt: new Date(Date.now() + 86400000), ipAddress: null, userAgent: null, createdAt: new Date(), updatedAt: new Date() },
+      user: {
+        id: "u1",
+        name: "U",
+        email: "u@u.com",
+        emailVerified: true,
+        image: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      session: {
+        id: "s1",
+        userId: "u1",
+        token: "t",
+        expiresAt: new Date(Date.now() + 86400000),
+        ipAddress: null,
+        userAgent: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     });
 
     const req = createMockRequest({

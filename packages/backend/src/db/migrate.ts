@@ -31,4 +31,4 @@ if (isPGlite) {
   await client.end();
 }
 
-console.log("Migrations complete");
+console.warn("Migrations complete");

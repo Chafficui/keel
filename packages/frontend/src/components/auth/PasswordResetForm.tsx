@@ -23,9 +23,7 @@ export default function PasswordResetForm() {
       setSuccess(true);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to send reset email. Please try again.",
+        err instanceof Error ? err.message : "Failed to send reset email. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -53,9 +51,7 @@ export default function PasswordResetForm() {
       setSuccess(true);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to reset password. The link may have expired.",
+        err instanceof Error ? err.message : "Failed to reset password. The link may have expired.",
       );
     } finally {
       setIsSubmitting(false);
@@ -82,12 +78,9 @@ export default function PasswordResetForm() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              Check your email
-            </h2>
+            <h2 className="text-xl font-bold text-white">Check your email</h2>
             <p className="mt-2 text-sm text-keel-gray-400">
-              If an account exists with that email, we&apos;ve sent password
-              reset instructions.
+              If an account exists with that email, we&apos;ve sent password reset instructions.
             </p>
             <Link
               to="/login"
@@ -121,12 +114,9 @@ export default function PasswordResetForm() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              Password reset successful
-            </h2>
+            <h2 className="text-xl font-bold text-white">Password reset successful</h2>
             <p className="mt-2 text-sm text-keel-gray-400">
-              Your password has been updated. You can now sign in with your new
-              password.
+              Your password has been updated. You can now sign in with your new password.
             </p>
             <Link
               to="/login"
@@ -254,10 +244,7 @@ export default function PasswordResetForm() {
         )}
 
         <p className="mt-6 text-center text-sm text-keel-gray-400">
-          <Link
-            to="/login"
-            className="font-medium text-keel-blue hover:text-keel-blue/80"
-          >
+          <Link to="/login" className="font-medium text-keel-blue hover:text-keel-blue/80">
             Back to login
           </Link>
         </p>
