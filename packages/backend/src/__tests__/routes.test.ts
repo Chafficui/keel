@@ -29,11 +29,6 @@ describe("health route", () => {
 // ---------------------------------------------------------------------------
 
 // Mock the database module
-const mockUpdate = vi.fn();
-const mockSet = vi.fn();
-const mockWhere = vi.fn();
-const mockReturning = vi.fn();
-
 vi.mock("../db/index.js", () => ({
   db: {
     execute: vi.fn().mockResolvedValue([{ "?column?": 1 }]),

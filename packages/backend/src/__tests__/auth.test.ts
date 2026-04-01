@@ -21,8 +21,8 @@ const { requireAuth } = await import("../middleware/auth.js");
 function createMockRequest(
   overrides: Partial<{
     headers: Record<string, string | undefined>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mocks are partial implementations
   }> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mocks are partial implementations
 ): any {
   return {
     headers: overrides.headers ?? {},
