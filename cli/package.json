@@ -44,7 +44,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.0.0",
+    "@inquirer/prompts": "^8.3.2",
     "chalk": "^5.4.0",
     "degit": "^2.8.4",
     "ora": "^8.2.0"
