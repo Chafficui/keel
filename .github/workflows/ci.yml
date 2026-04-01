@@ -11,9 +11,50 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.filter.outputs.packages }}
+      cli: ${{ steps.filter.outputs.cli }}
+      docker: ${{ steps.filter.outputs.docker }}
+      lockfile: ${{ steps.filter.outputs.lockfile }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            packages:
+              - 'packages/**'
+              - 'tsconfig.base.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'eslint.config.js'
+              - '.prettierrc'
+              - 'vitest.config.ts'
+            cli:
+              - 'cli/**'
+            docker:
+              - 'packages/backend/Dockerfile'
+              - 'packages/**'
+              - 'tsconfig.base.json'
+              - 'package.json'
+              - 'package-lock.json'
+            lockfile:
+              - 'package-lock.json'
+              - 'cli/package-lock.json'
+
   lint-and-format:
     name: Lint & Format
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,6 +80,8 @@ jobs:
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,6 +104,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,6 +135,8 @@ jobs:
   cli:
     name: CLI Build & Test
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.cli == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,6 +171,13 @@ jobs:
     name: Full Build
     runs-on: ubuntu-latest
     needs: [lint-and-format, typecheck, test, cli]
+    if: |
+      always() &&
+      (needs.lint-and-format.result == 'success' || needs.lint-and-format.result == 'skipped') &&
+      (needs.typecheck.result == 'success' || needs.typecheck.result == 'skipped') &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+      (needs.cli.result == 'success' || needs.cli.result == 'skipped') &&
+      (needs.lint-and-format.result == 'success' || needs.typecheck.result == 'success' || needs.test.result == 'success' || needs.cli.result == 'success')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -143,7 +197,13 @@ jobs:
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [lint-and-format, typecheck, test]
+    needs: [changes, lint-and-format, typecheck, test]
+    if: |
+      always() &&
+      needs.changes.outputs.docker == 'true' &&
+      (needs.lint-and-format.result == 'success' || needs.lint-and-format.result == 'skipped') &&
+      (needs.typecheck.result == 'success' || needs.typecheck.result == 'skipped') &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -163,6 +223,8 @@ jobs:
   security:
     name: Security Audit
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.lockfile == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
