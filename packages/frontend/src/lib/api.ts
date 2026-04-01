@@ -35,10 +35,7 @@ export class ApiError extends Error {
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> {
+export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const baseURL = getBaseURL();
   const authHeaders = await getAuthHeaders();
 

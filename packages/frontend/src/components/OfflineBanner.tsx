@@ -58,12 +58,7 @@ export default function OfflineBanner() {
           className="shrink-0 rounded p-1 text-yellow-400 transition-colors hover:bg-yellow-500/20 hover:text-yellow-200"
           aria-label="Dismiss offline notice"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

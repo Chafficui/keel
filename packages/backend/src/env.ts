@@ -3,21 +3,15 @@ import { z } from "zod";
 const envSchema = z.object({
   // Server
   PORT: z.coerce.number().default(3005),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   BACKEND_URL: z.string().url().default("http://localhost:3005"),
   FRONTEND_URL: z.string().url().default("http://localhost:5173"),
 
   // Database — supports PostgreSQL (postgresql://...) or PGlite (pglite://./data)
-  DATABASE_URL: z
-    .string()
-    .default("postgresql://postgres:postgres@localhost:5432/keel"),
+  DATABASE_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/keel"),
 
   // Auth
-  BETTER_AUTH_SECRET: z
-    .string()
-    .default("dev-secret-change-me-in-production"),
+  BETTER_AUTH_SECRET: z.string().default("dev-secret-change-me-in-production"),
 
   // Email (Resend) — optional in dev, required in production
   RESEND_API_KEY: z.string().default(""),
@@ -73,7 +67,8 @@ if (env.NODE_ENV !== "production" && env.BETTER_AUTH_SECRET.length < 32) {
 // Warn about missing services in development
 if (env.NODE_ENV === "development") {
   const warnings: string[] = [];
-  if (!env.RESEND_API_KEY) warnings.push("RESEND_API_KEY not set — emails will be logged to console");
+  if (!env.RESEND_API_KEY)
+    warnings.push("RESEND_API_KEY not set — emails will be logged to console");
   if (env.DATABASE_URL.startsWith("pglite://")) {
     warnings.push("Using PGlite (embedded PostgreSQL) — no Docker needed, data stored locally");
   } else if (!env.DATABASE_URL || env.DATABASE_URL.includes("localhost")) {

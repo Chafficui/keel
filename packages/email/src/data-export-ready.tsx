@@ -43,9 +43,8 @@ export function DataExportReadyEmail({
             </Heading>
 
             <Text style={paragraph}>
-              Hi {userName}, the data export you requested is now ready for
-              download. The export contains a complete copy of your personal
-              data stored in our systems.
+              Hi {userName}, the data export you requested is now ready for download. The export
+              contains a complete copy of your personal data stored in our systems.
             </Text>
 
             <Section style={buttonSection}>
@@ -56,22 +55,20 @@ export function DataExportReadyEmail({
 
             <Section style={warningSection}>
               <Text style={warningText}>
-                This download link will expire in {expiresIn}. Please download
-                your data before the link expires.
+                This download link will expire in {expiresIn}. Please download your data before the
+                link expires.
               </Text>
             </Section>
 
-            <Text style={paragraph}>
-              Your export includes the following data:
-            </Text>
+            <Text style={paragraph}>Your export includes the following data:</Text>
 
             <Text style={listItem}>&bull; Profile and personal information</Text>
             <Text style={listItem}>&bull; Consent and privacy preferences</Text>
             <Text style={listItem}>&bull; Account activity and session history</Text>
 
             <Text style={secondaryText}>
-              If you did not request this export, please secure your account by
-              changing your password immediately.
+              If you did not request this export, please secure your account by changing your
+              password immediately.
             </Text>
           </Section>
 

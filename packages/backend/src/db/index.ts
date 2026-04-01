@@ -7,7 +7,9 @@ const isPGlite = env.DATABASE_URL.startsWith("pglite://");
 // PGlite (pglite://./data) runs PostgreSQL in-process via WASM — no Docker needed.
 // Regular postgres:// URLs use the standard postgres.js driver.
 
-let db: ReturnType<typeof import("drizzle-orm/postgres-js").drizzle> | ReturnType<typeof import("drizzle-orm/pglite").drizzle>;
+let db:
+  | ReturnType<typeof import("drizzle-orm/postgres-js").drizzle>
+  | ReturnType<typeof import("drizzle-orm/pglite").drizzle>;
 let closeDb: () => Promise<void>;
 
 if (isPGlite) {
@@ -16,7 +18,9 @@ if (isPGlite) {
   const dataDir = env.DATABASE_URL.replace("pglite://", "") || "./data/pglite";
   const client = new PGlite(dataDir);
   db = drizzle(client, { schema });
-  closeDb = async () => { await client.close(); };
+  closeDb = async () => {
+    await client.close();
+  };
 } else {
   const { default: postgres } = await import("postgres");
   const { drizzle } = await import("drizzle-orm/postgres-js");
@@ -26,7 +30,9 @@ if (isPGlite) {
     connect_timeout: 10,
   });
   db = drizzle(client, { schema });
-  closeDb = async () => { await client.end(); };
+  closeDb = async () => {
+    await client.end();
+  };
 }
 
 export { db, closeDb };

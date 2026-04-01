@@ -13,9 +13,8 @@ export default function LoginForm() {
   const [searchParams] = useSearchParams();
   const rawReturnUrl = searchParams.get("returnUrl") || "/";
   // Prevent open redirect: only allow relative paths
-  const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//")
-    ? rawReturnUrl
-    : "/";
+  const returnUrl =
+    rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,7 +26,11 @@ export default function LoginForm() {
       navigate(returnUrl);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("invalid_credentials") || msg.includes("Invalid email or password") || msg.includes("Invalid credentials")) {
+      if (
+        msg.includes("invalid_credentials") ||
+        msg.includes("Invalid email or password") ||
+        msg.includes("Invalid credentials")
+      ) {
         setError("Invalid email or password.");
       } else if (msg.includes("email_not_verified") || msg.includes("not verified")) {
         setError("Please verify your email before signing in.");
@@ -46,9 +49,7 @@ export default function LoginForm() {
       <div className="rounded-xl border border-keel-gray-800 bg-keel-gray-900 p-8">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-          <p className="mt-1 text-sm text-keel-gray-400">
-            Sign in to your account
-          </p>
+          <p className="mt-1 text-sm text-keel-gray-400">Sign in to your account</p>
         </div>
 
         {error && (
@@ -59,10 +60,7 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-sm font-medium text-keel-gray-400"
-            >
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-keel-gray-400">
               Email
             </label>
             <input
@@ -79,10 +77,7 @@ export default function LoginForm() {
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-keel-gray-400"
-              >
+              <label htmlFor="password" className="text-sm font-medium text-keel-gray-400">
                 Password
               </label>
               <Link
@@ -120,14 +115,11 @@ export default function LoginForm() {
           </button>
         </form>
 
-            {/* [SAIL_SOCIAL_BUTTONS] */}
+        {/* [SAIL_SOCIAL_BUTTONS] */}
 
         <p className="mt-6 text-center text-sm text-keel-gray-400">
           Don&apos;t have an account?{" "}
-          <Link
-            to="/signup"
-            className="font-medium text-keel-blue hover:text-keel-blue/80"
-          >
+          <Link to="/signup" className="font-medium text-keel-blue hover:text-keel-blue/80">
             Sign up
           </Link>
         </p>

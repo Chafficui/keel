@@ -9,17 +9,8 @@ export {
   type PasswordResetSchemaInput,
 } from "./auth.js";
 
-export {
-  updateProfileSchema,
-  type UpdateProfileSchemaInput,
-} from "./profile.js";
+export { updateProfileSchema, type UpdateProfileSchemaInput } from "./profile.js";
 
-export {
-  consentInputSchema,
-  type ConsentInputSchemaInput,
-} from "./consent.js";
+export { consentInputSchema, type ConsentInputSchemaInput } from "./consent.js";
 
-export {
-  paginationSchema,
-  type PaginationSchemaInput,
-} from "./pagination.js";
+export { paginationSchema, type PaginationSchemaInput } from "./pagination.js";

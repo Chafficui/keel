@@ -48,25 +48,22 @@ export function ConsentUpdatedEmail({
             </Heading>
 
             <Text style={paragraph}>
-              Hi {userName}, this is to confirm that your privacy preferences
-              have been updated. Here&apos;s a summary of the changes:
+              Hi {userName}, this is to confirm that your privacy preferences have been updated.
+              Here&apos;s a summary of the changes:
             </Text>
 
             {changes.map((change, index) => (
               <Text key={index} style={listItem}>
                 &bull; {change.type}:{" "}
-                <span
-                  style={
-                    change.action === "granted" ? grantedBadge : revokedBadge
-                  }
-                >
+                <span style={change.action === "granted" ? grantedBadge : revokedBadge}>
                   {change.action}
                 </span>
               </Text>
             ))}
 
             <Text style={timestampText}>
-              Updated on {new Date().toLocaleDateString("en-US", {
+              Updated on{" "}
+              {new Date().toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -76,17 +73,14 @@ export function ConsentUpdatedEmail({
             </Text>
 
             <Section style={buttonSection}>
-              <Button
-                style={button}
-                href={`${baseUrl}/settings/privacy`}
-              >
+              <Button style={button} href={`${baseUrl}/settings/privacy`}>
                 Manage Preferences
               </Button>
             </Section>
 
             <Text style={secondaryText}>
-              These changes take effect immediately. You can update your
-              preferences at any time from your account settings.
+              These changes take effect immediately. You can update your preferences at any time
+              from your account settings.
             </Text>
           </Section>
 

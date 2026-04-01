@@ -4,10 +4,7 @@ import { toNodeHandler as betterAuthToNodeHandler } from "better-auth/node";
 import { db } from "../db/index.js";
 import * as schema from "../db/schema/index.js";
 import { env } from "../env.js";
-import {
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-} from "./email.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "./email.js";
 
 const authConfig: BetterAuthOptions = {
   database: drizzleAdapter(db, {

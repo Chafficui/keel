@@ -1,8 +1,4 @@
-export type {
-  User,
-  UserProfile,
-  UpdateProfileInput,
-} from "./user.js";
+export type { User, UserProfile, UpdateProfileInput } from "./user.js";
 
 export type {
   SignupInput,

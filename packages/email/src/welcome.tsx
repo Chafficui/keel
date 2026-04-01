@@ -18,7 +18,10 @@ interface WelcomeEmailProps {
   baseUrl?: string;
 }
 
-export function WelcomeEmail({ userName, baseUrl: rawBaseUrl = "http://localhost:5173" }: WelcomeEmailProps) {
+export function WelcomeEmail({
+  userName,
+  baseUrl: rawBaseUrl = "http://localhost:5173",
+}: WelcomeEmailProps) {
   const baseUrl = sanitizeUrl(rawBaseUrl);
   return (
     <Html>
@@ -38,8 +41,7 @@ export function WelcomeEmail({ userName, baseUrl: rawBaseUrl = "http://localhost
             </Heading>
 
             <Text style={paragraph}>
-              We&apos;re excited to have you on board. Your account is all set
-              up and ready to go.
+              We&apos;re excited to have you on board. Your account is all set up and ready to go.
             </Text>
 
             <Section style={buttonSection}>
@@ -49,8 +51,8 @@ export function WelcomeEmail({ userName, baseUrl: rawBaseUrl = "http://localhost
             </Section>
 
             <Text style={secondaryText}>
-              If you have any questions, feel free to reach out to our support
-              team. We&apos;re here to help!
+              If you have any questions, feel free to reach out to our support team. We&apos;re here
+              to help!
             </Text>
           </Section>
 

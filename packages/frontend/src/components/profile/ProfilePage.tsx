@@ -25,9 +25,7 @@ export default function ProfilePage() {
       setSuccess("Profile updated successfully.");
       setIsEditing(false);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update profile.",
-      );
+      setError(err instanceof Error ? err.message : "Failed to update profile.");
     } finally {
       setIsSaving(false);
     }
@@ -83,9 +81,7 @@ export default function ProfilePage() {
                     Email
                   </label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-keel-gray-400">
-                      {user?.email}
-                    </span>
+                    <span className="text-sm text-keel-gray-400">{user?.email}</span>
                     {user?.emailVerified && (
                       <span className="inline-flex items-center rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400">
                         Verified
@@ -118,9 +114,7 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-keel-gray-400">Name</p>
-                  <p className="text-sm text-white">
-                    {user?.name || "Not set"}
-                  </p>
+                  <p className="text-sm text-white">{user?.name || "Not set"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-keel-gray-400">Email</p>
@@ -134,9 +128,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-keel-gray-400">
-                    Member since
-                  </p>
+                  <p className="text-sm font-medium text-keel-gray-400">Member since</p>
                   <p className="text-sm text-white">{memberSince}</p>
                 </div>
                 <button

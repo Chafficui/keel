@@ -43,15 +43,14 @@ export function AccountDeletionRequestedEmail({
             </Heading>
 
             <Text style={paragraph}>
-              Hi {userName}, we&apos;ve received your request to delete your
-              account. Your account and all associated data are scheduled to be
-              permanently deleted on <strong>{scheduledDeletionDate}</strong>.
+              Hi {userName}, we&apos;ve received your request to delete your account. Your account
+              and all associated data are scheduled to be permanently deleted on{" "}
+              <strong>{scheduledDeletionDate}</strong>.
             </Text>
 
             <Text style={paragraph}>
-              You have a 30-day grace period to change your mind. During this
-              time, your account will remain active and you can cancel the
-              deletion at any time.
+              You have a 30-day grace period to change your mind. During this time, your account
+              will remain active and you can cancel the deletion at any time.
             </Text>
 
             <Section style={buttonSection}>
@@ -62,16 +61,15 @@ export function AccountDeletionRequestedEmail({
 
             <Section style={dangerSection}>
               <Text style={dangerText}>
-                After the grace period ends, all your data will be permanently
-                removed. This includes your profile, projects, activity history,
-                and any other information associated with your account. This
-                action cannot be undone.
+                After the grace period ends, all your data will be permanently removed. This
+                includes your profile, projects, activity history, and any other information
+                associated with your account. This action cannot be undone.
               </Text>
             </Section>
 
             <Text style={secondaryText}>
-              If you did not request this, please cancel the deletion
-              immediately and secure your account.
+              If you did not request this, please cancel the deletion immediately and secure your
+              account.
             </Text>
           </Section>
 
