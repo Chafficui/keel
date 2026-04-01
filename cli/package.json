@@ -44,15 +44,15 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.0.0",
+    "@inquirer/prompts": "^8.3.2",
     "chalk": "^5.4.0",
     "degit": "^2.8.4",
     "ora": "^9.3.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.5.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0",
+    "typescript": "^6.0.2",
     "vitest": "^4.1.1"
   }
 }
