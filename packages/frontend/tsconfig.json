@@ -15,8 +15,7 @@
     "noEmit": false,
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "baseUrl": "."
+    }
   },
   "include": ["src"],
   "references": [
