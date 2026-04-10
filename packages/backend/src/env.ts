@@ -21,7 +21,7 @@ const envSchema = z.object({
   ENABLE_CAPACITOR: z
     .string()
     .transform((v) => v === "true")
-    .default("false"),
+    .default(false),
 
   // [SAIL_ENV_VARS]
 });
