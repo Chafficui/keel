@@ -19,7 +19,7 @@
   "dependencies": {
     "@keel/email": "*",
     "@keel/shared": "*",
-    "@react-email/render": "^2.0.5",
+    "@react-email/render": "^2.0.6",
     "better-auth": "^1.5.6",
     "cors": "^2.8.6",
     "drizzle-orm": "^0.45.2",
