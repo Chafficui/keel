@@ -46,7 +46,7 @@
   "dependencies": {
     "@inquirer/prompts": "^8.3.2",
     "chalk": "^5.4.0",
-    "degit": "^2.8.4",
+    "degit": "^3.2.0",
     "ora": "^9.3.0"
   },
   "devDependencies": {
